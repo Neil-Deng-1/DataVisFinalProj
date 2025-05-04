@@ -2,31 +2,39 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Movie Dot Plot</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        <script src="https://d3js.org/d3.v7.min.js"></script>
+        <script src="https://unpkg.com/d3-simple-slider"></script>
+        
         <link rel="stylesheet" href="css/styles.css">
     </head>
     <body>
-        <div id="tooltip" style="display:none"></div>
+
+        <h1>Temp</h1>
         <div id="controls">
-            <label>Director Name:
+            <label>
+                Director Name:
                 <input type="text" id="directorSearch" placeholder="e.g. Nolan">
+                Adult Films:
+                <input type="checkbox" id="adultCheck">
             </label>
-            <br>
-        
-            <label>Year Range:</label>
-            <div id="yearSlider"></div>
-        
-            <label>Rating Range:</label>
-            <div id="ratingSlider"></div>
+
+            <div class="slider-group">
+                <label>Year Range:</label>
+                <div id="yearSlider"></div>
+            </div>
+
+            <div class="slider-group">
+                <label>Rating Range:</label>
+                <div id="ratingSlider"></div>
+            </div>
         </div>
 
         <div id="vis"></div>
+        <div id="tooltip" class="tooltip"></div>
 
-        <script src="https://unpkg.com/d3-simple-slider"></script>
-        <script src="https://d3js.org/d3.v7.min.js"></script>
         <script src="js/script.js"></script>
     </body>
 </html>
-
-
