@@ -3,15 +3,30 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Temp Page Title</title>
+        <title>Movie Dot Plot</title>
         <link rel="stylesheet" href="css/styles.css">
     </head>
     <body>
-        <!-- <h1>Temp Page Title</h1> -->
+        <div id="tooltip" style="display:none"></div>
+        <div id="controls">
+            <label>Director Name:
+                <input type="text" id="directorSearch" placeholder="e.g. Nolan">
+            </label>
+            <br>
+        
+            <label>Year Range:</label>
+            <div id="yearSlider"></div>
+        
+            <label>Rating Range:</label>
+            <div id="ratingSlider"></div>
+        </div>
 
         <div id="vis"></div>
 
+        <script src="https://unpkg.com/d3-simple-slider"></script>
         <script src="https://d3js.org/d3.v7.min.js"></script>
         <script src="js/script.js"></script>
     </body>
 </html>
+
+
