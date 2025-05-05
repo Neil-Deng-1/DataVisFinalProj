@@ -3,19 +3,18 @@ console.log('D3 Version:', d3.version);
 const margin = { top: 30, right: 30, bottom: 30, left: 30 };
 const width = window.innerWidth - margin.left - margin.right;
 const height = window.innerHeight - margin.top - margin.bottom;
-const radius = 3;
-const verticalSpacing = radius * 2.5;
 
 let allData = [];
 let filteredData = [];
 let yearRange = [0, 0];
 let ratingRange = [0, 10];
 let directorFilter = "";
+let selectedGenres = [];
 
 const svg = d3.select("#vis")
     .append("svg")
     .attr('width', width)
-    .attr('height', height - 350)
+    .attr('height', height - 310)
     .attr("preserveAspectRatio", "xMidYMid meet")
     .append("g")
     .attr("transform", `translate(${margin.left},${margin.top})`);
@@ -109,6 +108,27 @@ function setupSelector() {
     
     d3.select("#adultCheck").on("change", updateVis);
 
+    const genreSet = new Set();
+    allData.forEach(d => {
+        if (d.genres) {
+            d.genres.split(',').forEach(g => genreSet.add(g.trim()));
+        }
+    });
+    const genres = Array.from(genreSet).sort();
+
+    const dropdown = d3.select("#genreDropdown");
+    genres.forEach(genre => {
+        dropdown.append("option")
+            .attr("value", genre)
+            .text(genre);
+    });
+
+    dropdown.on("change", function() {
+        const selectedOptions = Array.from(this.selectedOptions);
+        genreFilter = selectedOptions.map(opt => opt.value);
+        updateVis();
+    });
+
 }
 
 // UPDATE VISUALIZATION
@@ -121,6 +141,7 @@ function updateVis() {
         d.year <= yearRange[1] &&
         d.averageRating >= ratingRange[0] &&
         d.averageRating <= ratingRange[1] &&
+        genreFilter.some(g => d.genres.split(',').map(x => x.trim()).includes(g)) &&
         (!directorFilter || (d.director && d.director.toLowerCase().includes(directorFilter))) &&
         (+d.adult == showAdult)
     );
@@ -128,7 +149,7 @@ function updateVis() {
     const yearGroups = d3.group(filteredData, d => d.year);
     const years = Array.from(yearGroups.keys()).sort(d3.ascending);
     //const maxMoviesInYear = d3.max(Array.from(yearGroups.values(), g => g.length));
-    const requiredHeight = height - 350;
+    const requiredHeight = height - 310;
     //const requiredHeight = maxMoviesInYear * verticalSpacing + margin.top + margin.bottom;
 
     svg.selectAll("*").remove(); // Clear previous
@@ -150,8 +171,8 @@ function updateVis() {
         movies.forEach((d, i) => {
             svg.append("circle")
                 .attr("cx", x(year) + x.bandwidth() / 2)
-                .attr("cy", requiredHeight - margin.bottom - margin.top - i * verticalSpacing)
-                .attr("r", radius)
+                .attr("cy", requiredHeight - margin.bottom - margin.top - i * 7.5)
+                .attr("r", 3)
                 .attr("fill", "steelblue")
                 .on('mouseover', function (event) {
                     d3.select('#tooltip')
@@ -162,7 +183,7 @@ function updateVis() {
                             Year: ${d.year}<br>
                             Rating: ${d.averageRating}<br>
                             Adult: ${d.adult}<br>
-                            Director: ${d.director || "N/A"}
+                            Director: ${d.director}
                         `)
                         .style("left", (event.pageX + 20) + "px")
                         .style("top", (event.pageY - 28) + "px");
