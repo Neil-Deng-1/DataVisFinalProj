@@ -116,6 +116,8 @@ function setupSelector() {
 
    // Replace dropdown with checkbox container
     const checkboxContainer = d3.select("#genreCheckboxes");
+
+
     checkboxContainer.selectAll("label")
         .data(genres)
         .enter()
@@ -125,6 +127,11 @@ function setupSelector() {
             <input type="checkbox" value="${genre}" class="genre-checkbox"> ${genre}
         `);
 
+    d3.select("#clearGenresBtn").on("click", () => {
+        d3.selectAll(".genre-checkbox").property("checked", false);
+        genreFilter = [];
+        updateVis();
+    });
     // Event listener for checkboxes
     d3.selectAll(".genre-checkbox").on("change", () => {
         genreFilter = [];
