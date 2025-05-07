@@ -114,16 +114,23 @@ function setupSelector() {
     });
     const genres = Array.from(genreSet).sort();
 
-    const dropdown = d3.select("#genreDropdown");
-    genres.forEach(genre => {
-        dropdown.append("option")
-            .attr("value", genre)
-            .text(genre);
-    });
+   // Replace dropdown with checkbox container
+    const checkboxContainer = d3.select("#genreCheckboxes");
+    checkboxContainer.selectAll("label")
+        .data(genres)
+        .enter()
+        .append("label")
+        .style("display", "block")
+        .html(genre => `
+            <input type="checkbox" value="${genre}" class="genre-checkbox"> ${genre}
+        `);
 
-    dropdown.on("change", function() {
-        const selectedOptions = Array.from(this.selectedOptions);
-        genreFilter = selectedOptions.map(opt => opt.value);
+    // Event listener for checkboxes
+    d3.selectAll(".genre-checkbox").on("change", () => {
+        genreFilter = [];
+        d3.selectAll(".genre-checkbox:checked").each(function() {
+            genreFilter.push(this.value);
+        });
         updateVis();
     });
 
@@ -175,14 +182,23 @@ function updateVis() {
         d3.select("#y-axis-label").text("Movie Count");
 
         years.forEach(year => {
-            const movies = yearGroups.get(year);
+            const movies = yearGroups.get(year).slice().sort((a, b) =>
+                a.title.localeCompare(b.title)
+            );
             movies.forEach((d, i) => {
                 g.append("circle")
                     .attr("cx", x(year) + x.bandwidth() / 2)
                     .attr("cy", y(i + 1))
                     .attr("r", 3)
                     .attr("fill", "steelblue")
-                    .on('mouseover', event => {
+                    .on('mouseover', function(event) {
+                        d3.select(this)
+                            .transition()
+                            .duration(100)
+                            .attr("r", 6)
+                            .attr("stroke", "black")
+                            .attr("stroke-width", 1);
+        
                         tooltip
                             .style("display", 'block')
                             .style("visibility", "visible")
@@ -196,10 +212,18 @@ function updateVis() {
                             .style("left", (event.pageX + 20) + "px")
                             .style("top", (event.pageY - 28) + "px");
                     })
-                    .on("mouseout", () => tooltip.style("display", "none"));
+                    .on("mouseout", function() {
+                        d3.select(this)
+                            .transition()
+                            .duration(100)
+                            .attr("r", 3)
+                            .attr("stroke", "none");
+        
+                        tooltip.style("display", "none");
+                    });
             });
         });
-
+        
     } else if (currentYAxisMode === "rating") {
         y = d3.scaleLinear()
             .domain([0, 10])
@@ -216,7 +240,14 @@ function updateVis() {
                     .attr("cy", y(d.averageRating))
                     .attr("r", 4)
                     .attr("fill", "darkorange")
-                    .on('mouseover', event => {
+                    .on('mouseover', function(event) {
+                        d3.select(this)
+                            .transition()
+                            .duration(100)
+                            .attr("r", 8)
+                            .attr("stroke", "black")
+                            .attr("stroke-width", 1);
+
                         tooltip
                             .style("display", 'block')
                             .style("visibility", "visible")
@@ -230,7 +261,15 @@ function updateVis() {
                             .style("left", (event.pageX + 20) + "px")
                             .style("top", (event.pageY - 28) + "px");
                     })
-                    .on("mouseout", () => tooltip.style("display", "none"));
+                    .on("mouseout", function() {
+                        d3.select(this)
+                            .transition()
+                            .duration(100)
+                            .attr("r", 4)
+                            .attr("stroke", "none");
+
+                        tooltip.style("display", "none");
+                    });
             });
         });
     }

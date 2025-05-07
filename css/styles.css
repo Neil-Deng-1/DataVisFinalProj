@@ -71,3 +71,19 @@ input[type="checkbox"] {
     display: flex;
     flex-direction: column;
 }
+
+#genreCheckboxes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    width: 300px;
+    font-size: 12px;
+    border: 1px solid #ccc;
+    padding: 6px;
+    background-color: #f9f9f9;
+}
+
+#genreCheckboxes label {
+    display: block;
+    margin-bottom: 10px;
+}
