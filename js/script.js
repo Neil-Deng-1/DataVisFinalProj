@@ -9,6 +9,7 @@ let filteredData = [];
 let yearRange = [0, 0];
 let ratingRange = [0, 10];
 let directorFilter = "";
+let titleFilter = "";
 let genreFilter = [];
 let currentYAxisMode = "count"; // "count" or "rating"
 
@@ -103,6 +104,12 @@ function setupSelector() {
             directorFilter = d3.select("#directorSearch").property("value").toLowerCase();
             updateVis();
         });
+    d3.select("#titleSearch")
+        .on("input", () => {
+            titleFilter = d3.select("#titleSearch").property("value").toLowerCase();
+            updateVis();
+        });
+    
 
     d3.select("#adultCheck").on("change", updateVis);
 
@@ -126,7 +133,14 @@ function setupSelector() {
         .html(genre => `
             <input type="checkbox" value="${genre}" class="genre-checkbox"> ${genre}
         `);
-
+    d3.select("#selectAllGenresBtn").on("click", () => {
+        genreFilter = [];
+        d3.selectAll(".genre-checkbox").property("checked", true);
+        d3.selectAll(".genre-checkbox").each(function () {
+            genreFilter.push(this.value);
+        });
+        updateVis();
+    });
     d3.select("#clearGenresBtn").on("click", () => {
         d3.selectAll(".genre-checkbox").property("checked", false);
         genreFilter = [];
@@ -157,6 +171,7 @@ function updateVis() {
         d.averageRating <= ratingRange[1] &&
         genreFilter.some(g => d.genres.split(',').map(x => x.trim()).includes(g)) &&
         (!directorFilter || (d.director && d.director.toLowerCase().includes(directorFilter))) &&
+        (!titleFilter || (d.title && d.title.toLowerCase().includes(titleFilter))) &&
         (+d.adult === +showAdult)
     );
 

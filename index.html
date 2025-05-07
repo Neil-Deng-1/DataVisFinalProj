@@ -23,6 +23,10 @@
                 Director Name:<br>
                 <input type="text" id="directorSearch" placeholder="e.g. Nolan">
             </label>
+            <label>
+                Movie Title:<br>
+                <input type="text" id="titleSearch" placeholder="e.g. Inception">
+            </label>
         </div>
 
         <div>
@@ -45,6 +49,7 @@
         <div>
             <label>
                 Genre:<br>
+                <button id="selectAllGenresBtn" style="margin-bottom: 6px; margin-right: 6px;">Select All</button>
                 <button id="clearGenresBtn" style="margin-bottom: 6px;">Clear All</button>
                 <div id="genreCheckboxes" style="max-height: 150px; overflow-y: auto;">
                     <!-- Checkboxes will be populated dynamically -->
