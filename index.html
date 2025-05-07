@@ -12,14 +12,48 @@
     </head>
     <body>
 
-        <h1>Temp</h1>
+        <h1>Tracking Trends in Media</h1>
         <div id="controls">
+
+            <div class="genreFilterList">
+                <label><input type="checkbox" value="Action" checked> Action</label><br>
+                <label><input type="checkbox" value="Adult"> Adult</label><br>
+                <label><input type="checkbox" value="Adventure"> Adventure</label><br>
+                <label><input type="checkbox" value="Animation"> Animation</label><br>
+                <label><input type="checkbox" value="Biography"> Biography</label><br>
+                <label><input type="checkbox" value="Comedy"> Comedy</label><br>
+                <label><input type="checkbox" value="Crime"> Crime</label><br>
+                <label><input type="checkbox" value="Documentary"> Documentary</label><br>
+                <label><input type="checkbox" value="Drama"> Drama</label><br>
+                <label><input type="checkbox" value="Family"> Family</label><br>
+                <label><input type="checkbox" value="Fantasy"> Fantasy</label><br>
+                <label><input type="checkbox" value="Film-Noir"> Film-Noir</label><br>
+                <label><input type="checkbox" value="Game-Show"> Game-Show</label><br>
+                <label><input type="checkbox" value="History"> History</label><br>
+                <label><input type="checkbox" value="Horror">Horror</label><br>
+                <label><input type="checkbox" value="Music"> Music</label><br>
+                <label><input type="checkbox" value="Musical"> Musical</label><br>
+                <label><input type="checkbox" value="Mystery"> Mystery</label><br>
+                <label><input type="checkbox" value="News"> News</label><br>
+                <label><input type="checkbox" value="Reality-TV"> Reality-TV</label><br>
+                <label><input type="checkbox" value="Romance"> Romance</label><br>
+                <label><input type="checkbox" value="Sci-Fi"> Sci-Fi</label><br>
+                <label><input type="checkbox" value="Sport"> Sport</label><br>
+                <label><input type="checkbox" value="Talk-Show"> Talk-Show</label><br>
+                <label><input type="checkbox" value="Thriller"> Thriller</label><br>
+                <label><input type="checkbox" value="War"> War</label><br>
+                <label><input type="checkbox" value="Western"> Western</label><br>
+                <label><input type="checkbox" value="\N"> \N</label><br>
+            </div>
+
             <label>
                 Director Name:
                 <input type="text" id="directorSearch" placeholder="e.g. Nolan">
                 Adult Films:
                 <input type="checkbox" id="adultCheck">
                 Genre:
+                
+                
                 <select id="genreDropdown">
                     <!-- <option value="">Drama</option>
                     <option value="">Action</option>
@@ -51,10 +85,7 @@
                 </select>
             </label>
 
-            <div class="slider-group">
-                <label>Year Range:</label>
-                <div id="yearSlider"></div>
-            </div>
+            
 
             <div class="slider-group">
                 <label>Rating Range:</label>
@@ -64,6 +95,11 @@
 
         <div id="vis"></div>
         <div id="tooltip" class="tooltip"></div>
+
+        <div class="slider-group">
+            <label>Year Range:</label>
+            <div id="yearSlider"></div>
+        </div>
 
         <script src="js/script.js"></script>
     </body>
