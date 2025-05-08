@@ -1,34 +1,38 @@
 console.log('D3 Version:', d3.version);
 
-const margin = { top: 30, right: 30, bottom: 30, left: 30 };
+const margin = { top: 30, right: 30, bottom: 60, left: 60 };
 const width = window.innerWidth - margin.left - margin.right;
-const height = window.innerHeight - margin.top - margin.bottom;
+const svgHeight = 600;
 
 let allData = [];
 let filteredData = [];
 let yearRange = [0, 0];
 let ratingRange = [0, 10];
 let directorFilter = "";
-let selectedGenres = [];
+let titleFilter = "";
+let genreFilter = [];
+let currentYAxisMode = "count"; // "count" or "rating"
 
 const svg = d3.select("#vis")
     .append("svg")
-    .attr('width', width)
-    .attr('height', height - 310)
-    .attr("preserveAspectRatio", "xMidYMid meet")
-    .append("g")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", svgHeight)
+    .attr("preserveAspectRatio", "xMidYMid meet");
+
+const g = svg.append("g")
     .attr("transform", `translate(${margin.left},${margin.top})`);
 
-const tooltip = d3.select("#tooltip");
+g.append("text")
+    .attr("id", "y-axis-label")
+    .attr("transform", "rotate(-90)")
+    .attr("x", -svgHeight / 2)
+    .attr("y", -45)
+    .attr("dy", "1em")
+    .style("text-anchor", "middle")
+    .style("font-size", "14px")
+    .text("Y Axis");
 
-// const tooltip = d3.select("body").append("div")
-//     .attr("class", "tooltip")
-//     .style("position", "absolute")
-//     .style("visibility", "hidden")
-//     .style("padding", "10px")
-//     .style("background", "rgba(0,0,0,0.7)")
-//     .style("color", "#fff")
-//     .style("border-radius", "3px");
+const tooltip = d3.select("#tooltip");
 
 function init() {
     d3.csv("./data/imdbMoviesCleaned.csv", d => ({
@@ -50,15 +54,10 @@ function init() {
     .catch(error => console.error("Data load error:", error));
 }
 
-// SETUP FILTERS
 function setupSelector() {
     const minYear = d3.min(allData, d => d.year);
     const maxYear = d3.max(allData, d => d.year);
     yearRange = [minYear, maxYear];
-
-    const minRating = d3.min(allData, d => d.averageRating);
-    const maxRating = d3.max(allData, d => d.averageRating);
-    ratingRange = [minRating, maxRating];
 
     const yearSlider = d3.sliderHorizontal()
         .min(minYear)
@@ -72,6 +71,14 @@ function setupSelector() {
             updateVis();
         });
 
+    d3.select("#yearSlider")
+        .append("svg")
+        .attr("width", width)
+        .attr("height", 70)
+        .append("g")
+        .attr("transform", "translate(30,20)")
+        .call(yearSlider);
+
     const ratingSlider = d3.sliderHorizontal()
         .min(0)
         .max(10)
@@ -83,14 +90,6 @@ function setupSelector() {
             ratingRange = val;
             updateVis();
         });
-
-    d3.select("#yearSlider")
-        .append("svg")
-        .attr("width", width)
-        .attr("height", 70)
-        .append("g")
-        .attr("transform", "translate(30,20)")
-        .call(yearSlider);
 
     d3.select("#ratingSlider")
         .append("svg")
@@ -105,7 +104,13 @@ function setupSelector() {
             directorFilter = d3.select("#directorSearch").property("value").toLowerCase();
             updateVis();
         });
+    d3.select("#titleSearch")
+        .on("input", () => {
+            titleFilter = d3.select("#titleSearch").property("value").toLowerCase();
+            updateVis();
+        });
     
+
     d3.select("#adultCheck").on("change", updateVis);
 
     const genreSet = new Set();
@@ -116,25 +121,48 @@ function setupSelector() {
     });
     const genres = Array.from(genreSet).sort();
 
-    const dropdown = d3.select("#genreDropdown");
-    genres.forEach(genre => {
-        dropdown.append("option")
-            .attr("value", genre)
-            .text(genre);
-    });
+   // Replace dropdown with checkbox container
+    const checkboxContainer = d3.select("#genreCheckboxes");
 
-    dropdown.on("change", function() {
-        const selectedOptions = Array.from(this.selectedOptions);
-        genreFilter = selectedOptions.map(opt => opt.value);
+
+    checkboxContainer.selectAll("label")
+        .data(genres)
+        .enter()
+        .append("label")
+        .style("display", "block")
+        .html(genre => `
+            <input type="checkbox" value="${genre}" class="genre-checkbox"> ${genre}
+        `);
+    d3.select("#selectAllGenresBtn").on("click", () => {
+        genreFilter = [];
+        d3.selectAll(".genre-checkbox").property("checked", true);
+        d3.selectAll(".genre-checkbox").each(function () {
+            genreFilter.push(this.value);
+        });
+        updateVis();
+    });
+    d3.select("#clearGenresBtn").on("click", () => {
+        d3.selectAll(".genre-checkbox").property("checked", false);
+        genreFilter = [];
+        updateVis();
+    });
+    // Event listener for checkboxes
+    d3.selectAll(".genre-checkbox").on("change", () => {
+        genreFilter = [];
+        d3.selectAll(".genre-checkbox:checked").each(function() {
+            genreFilter.push(this.value);
+        });
         updateVis();
     });
 
+    d3.select("#y-axis-select").on("change", function () {
+        currentYAxisMode = this.value;
+        updateVis();
+    });
 }
 
-// UPDATE VISUALIZATION
 function updateVis() {
     const showAdult = d3.select("#adultCheck").property("checked");
-    console.log("adult:", showAdult);
 
     filteredData = allData.filter(d =>
         d.year >= yearRange[0] &&
@@ -143,59 +171,130 @@ function updateVis() {
         d.averageRating <= ratingRange[1] &&
         genreFilter.some(g => d.genres.split(',').map(x => x.trim()).includes(g)) &&
         (!directorFilter || (d.director && d.director.toLowerCase().includes(directorFilter))) &&
-        (+d.adult == showAdult)
+        (!titleFilter || (d.title && d.title.toLowerCase().includes(titleFilter))) &&
+        (+d.adult === +showAdult)
     );
 
     const yearGroups = d3.group(filteredData, d => d.year);
     const years = Array.from(yearGroups.keys()).sort(d3.ascending);
-    //const maxMoviesInYear = d3.max(Array.from(yearGroups.values(), g => g.length));
-    const requiredHeight = height - 310;
-    //const requiredHeight = maxMoviesInYear * verticalSpacing + margin.top + margin.bottom;
 
-    svg.selectAll("*").remove(); // Clear previous
+    g.selectAll("*:not(#y-axis-label)").remove(); // Keep y-axis label
 
     const x = d3.scaleBand()
         .domain(years)
-        .range([0, width - margin.left - margin.right])
+        .range([0, width])
         .padding(0.2);
 
-    svg.append("g")
-        .attr("transform", `translate(0,${requiredHeight - margin.bottom - margin.top})`)
+    g.append("g")
+        .attr("transform", `translate(0,${svgHeight - margin.top - margin.bottom})`)
         .call(d3.axisBottom(x).tickFormat(d3.format("d")))
         .selectAll("text")
         .attr("transform", "rotate(-45)")
         .style("text-anchor", "end");
 
-    years.forEach(year => {
-        const movies = yearGroups.get(year);
-        movies.forEach((d, i) => {
-            svg.append("circle")
-                .attr("cx", x(year) + x.bandwidth() / 2)
-                .attr("cy", requiredHeight - margin.bottom - margin.top - i * 7.5)
-                .attr("r", 3)
-                .attr("fill", "steelblue")
-                .on('mouseover', function (event) {
-                    d3.select('#tooltip')
-                        .style("display", 'block') 
-                        .style("visibility", "visible")
-                        .html(`
-                            <strong>${d.title}</strong><br>
-                            Year: ${d.year}<br>
-                            Rating: ${d.averageRating}<br>
-                            Adult: ${d.adult}<br>
-                            Director: ${d.director}
-                        `)
-                        .style("left", (event.pageX + 20) + "px")
-                        .style("top", (event.pageY - 28) + "px");
-                })
-                .on("mouseout", function (event) {
-                    d3.select('#tooltip')
-                        .style('display', 'none')
-                    d3.select(this) 
-                        .style('stroke', 'none')
-                })
+    let y;
+
+    if (currentYAxisMode === "count") {
+        const maxCount = d3.max(years, year => yearGroups.get(year).length);
+        y = d3.scaleLinear()
+            .domain([0, maxCount])
+            .range([svgHeight - margin.top - margin.bottom, 0]);
+
+        g.append("g").call(d3.axisLeft(y));
+        d3.select("#y-axis-label").text("Movie Count");
+
+        years.forEach(year => {
+            const movies = yearGroups.get(year).slice().sort((a, b) =>
+                a.title.localeCompare(b.title)
+            );
+            movies.forEach((d, i) => {
+                g.append("circle")
+                    .attr("cx", x(year) + x.bandwidth() / 2)
+                    .attr("cy", y(i + 1))
+                    .attr("r", 3)
+                    .attr("fill", "steelblue")
+                    .on('mouseover', function(event) {
+                        d3.select(this)
+                            .transition()
+                            .duration(100)
+                            .attr("r", 6)
+                            .attr("stroke", "black")
+                            .attr("stroke-width", 1);
+        
+                        tooltip
+                            .style("display", 'block')
+                            .style("visibility", "visible")
+                            .html(`
+                                <strong>${d.title}</strong><br>
+                                Year: ${d.year}<br>
+                                Rating: ${d.averageRating}<br>
+                                Adult: ${d.adult}<br>
+                                Director: ${d.director}
+                            `)
+                            .style("left", (event.pageX + 20) + "px")
+                            .style("top", (event.pageY - 28) + "px");
+                    })
+                    .on("mouseout", function() {
+                        d3.select(this)
+                            .transition()
+                            .duration(100)
+                            .attr("r", 3)
+                            .attr("stroke", "none");
+        
+                        tooltip.style("display", "none");
+                    });
+            });
         });
-    });
+        
+    } else if (currentYAxisMode === "rating") {
+        y = d3.scaleLinear()
+            .domain([0, 10])
+            .range([svgHeight - margin.top - margin.bottom, 0]);
+
+        g.append("g").call(d3.axisLeft(y));
+        d3.select("#y-axis-label").text("Rating");
+
+        years.forEach(year => {
+            const movies = yearGroups.get(year);
+            movies.forEach(d => {
+                g.append("circle")
+                    .attr("cx", x(year) + x.bandwidth() / 2)
+                    .attr("cy", y(d.averageRating))
+                    .attr("r", 4)
+                    .attr("fill", "darkorange")
+                    .on('mouseover', function(event) {
+                        d3.select(this)
+                            .transition()
+                            .duration(100)
+                            .attr("r", 8)
+                            .attr("stroke", "black")
+                            .attr("stroke-width", 1);
+
+                        tooltip
+                            .style("display", 'block')
+                            .style("visibility", "visible")
+                            .html(`
+                                <strong>${d.title}</strong><br>
+                                Year: ${d.year}<br>
+                                Rating: ${d.averageRating}<br>
+                                Adult: ${d.adult}<br>
+                                Director: ${d.director}
+                            `)
+                            .style("left", (event.pageX + 20) + "px")
+                            .style("top", (event.pageY - 28) + "px");
+                    })
+                    .on("mouseout", function() {
+                        d3.select(this)
+                            .transition()
+                            .duration(100)
+                            .attr("r", 4)
+                            .attr("stroke", "none");
+
+                        tooltip.style("display", "none");
+                    });
+            });
+        });
+    }
 }
 
 window.addEventListener("load", init);
