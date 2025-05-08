@@ -35,16 +35,17 @@ g.append("text")
 const tooltip = d3.select("#tooltip");
 
 function init() {
-    d3.csv("./data/imdbMoviesCleaned.csv", d => ({
+    d3.csv("./data/imdbPopularMovies.csv", d => ({
         index: +d.index,
+        id: d.tconst,
         title: d.primaryTitle,
         year: +d.startYear,
         genres: d.genres,
-        adult: +d.isAdult,
         director: d.directorNames,
         averageRating: +d.averageRating,
         numRatings: +d.numRatings,
-        weightedRating: +d.weightedRating
+        weightedRating: +d.weightedRating,
+        boxOffice: + d.worldwideBoxOffice
     }))
     .then(data => {
         allData = data;
@@ -162,7 +163,6 @@ function setupSelector() {
 }
 
 function updateVis() {
-    const showAdult = d3.select("#adultCheck").property("checked");
 
     filteredData = allData.filter(d =>
         d.year >= yearRange[0] &&
@@ -171,8 +171,7 @@ function updateVis() {
         d.averageRating <= ratingRange[1] &&
         genreFilter.some(g => d.genres.split(',').map(x => x.trim()).includes(g)) &&
         (!directorFilter || (d.director && d.director.toLowerCase().includes(directorFilter))) &&
-        (!titleFilter || (d.title && d.title.toLowerCase().includes(titleFilter))) &&
-        (+d.adult === +showAdult)
+        (!titleFilter || (d.title && d.title.toLowerCase().includes(titleFilter)))
     );
 
     const yearGroups = d3.group(filteredData, d => d.year);
@@ -226,10 +225,11 @@ function updateVis() {
                             .style("visibility", "visible")
                             .html(`
                                 <strong>${d.title}</strong><br>
+                                <em>click to go visit imdb page in new tab</em>
                                 Year: ${d.year}<br>
                                 Rating: ${d.averageRating}<br>
-                                Adult: ${d.adult}<br>
-                                Director: ${d.director}
+                                Worldwide Earnings: $${d.boxOffice.toLocaleString()}<br>
+                                Director: ${d.director} <br>
                             `)
                             .style("left", (event.pageX + 20) + "px")
                             .style("top", (event.pageY - 28) + "px");
@@ -242,6 +242,9 @@ function updateVis() {
                             .attr("stroke", "none");
         
                         tooltip.style("display", "none");
+                    }).on("click", () => {
+                        link  = `https://www.imdb.com/title/${d.id}/`
+                        window.open(link, '_blank')
                     });
             });
         });
@@ -275,9 +278,10 @@ function updateVis() {
                             .style("visibility", "visible")
                             .html(`
                                 <strong>${d.title}</strong><br>
+                                <em>click to go visit imdb page in new tab</em>
                                 Year: ${d.year}<br>
                                 Rating: ${d.averageRating}<br>
-                                Adult: ${d.adult}<br>
+                                Worldwide Earnings: $${d.boxOffice.toLocaleString()}<br>
                                 Director: ${d.director}
                             `)
                             .style("left", (event.pageX + 20) + "px")
@@ -291,6 +295,9 @@ function updateVis() {
                             .attr("stroke", "none");
 
                         tooltip.style("display", "none");
+                    }).on("click", () => {
+                        link  = `https://www.imdb.com/title/${d.id}/`
+                        window.open(link, '_blank')
                     });
             });
         });
