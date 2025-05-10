@@ -1,70 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>Movie Dot Plot</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        
-        <script src="https://d3js.org/d3.v7.min.js"></script>
-        <script src="https://unpkg.com/d3-simple-slider"></script>
-        
-        <link rel="stylesheet" href="css/styles.css">
-    </head>
-    <body>
+<head>
+    <meta charset="UTF-8">
+    <title>Movie Dot Plot</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        <h1>Temp</h1>
-        <div id="controls">
+    <!-- D3 & Slider libraries -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://unpkg.com/d3-simple-slider"></script>
+
+    <!-- Your stylesheet -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+    <h1>Movie Dot Plot</h1>
+
+    <!-- FILTER CONTROLS (Flex Layout) -->
+    <div id="controls" style="display: flex; flex-wrap: wrap; gap: 20px; align-items: center;">
+        <div>
             <label>
-                Director Name:
+                Director Name:<br>
                 <input type="text" id="directorSearch" placeholder="e.g. Nolan">
-                Adult Films:
-                <input type="checkbox" id="adultCheck">
-                Genre:
-                <select id="genreDropdown">
-                    <!-- <option value="">Drama</option>
-                    <option value="">Action</option>
-                    <option value="">Crime</option>
-                    <option value="">Adventure</option>
-                    <option value="">Sci-Fi</option>
-                    <option value="">Thriller</option>
-                    <option value="">Romance</option>
-                    <option value="">Fantasy</option>
-                    <option value="">Mystery</option>
-                    <option value="">Western</option>
-                    <option value="">War</option>
-                    <option value="">Horror</option>
-                    <option value="">Biography</option>
-                    <option value="">Comedy</option>
-                    <option value="">History</option>
-                    <option value="">Animation</option>
-                    <option value="">Family</option>
-                    <option value="">Music</option>
-                    <option value="">Sport</option>
-                    <option value="">Musical</option>
-                    <option value="">Film-Noir</option>
-                    <option value="">Documentary</option>
-                    <option value="">News</option>
-                    <option value="">Adult</option>
-                    <option value="">Reality-TV</option>
-                    <option value="">Talk-Show</option>
-                    <option value="">Game-Show</option> -->
-                </select>
             </label>
-
-            <div class="slider-group">
-                <label>Year Range:</label>
-                <div id="yearSlider"></div>
-            </div>
-
-            <div class="slider-group">
-                <label>Rating Range:</label>
-                <div id="ratingSlider"></div>
-            </div>
+            <label>
+                Movie Title:<br>
+                <input type="text" id="titleSearch" placeholder="e.g. Inception">
+            </label>
         </div>
 
-        <div id="vis"></div>
-        <div id="tooltip" class="tooltip"></div>
+        <div>
+            <label>
+                Adult Films:<br>
+                <input type="checkbox" id="adultCheck">
+            </label>
+        </div>
 
-        <script src="js/script.js"></script>
-    </body>
+        <div>
+            <label>
+                Y-Axis:<br>
+                <select id="y-axis-select">
+                    <option value="count">Count</option>
+                    <option value="rating">Rating</option>
+                </select>
+            </label>
+        </div>
+
+        <div>
+            <label>
+                Genre:<br>
+                <button id="selectAllGenresBtn" style="margin-bottom: 6px; margin-right: 6px;">Select All</button>
+                <button id="clearGenresBtn" style="margin-bottom: 6px;">Clear All</button>
+                <div id="genreCheckboxes" style="max-height: 150px; overflow-y: auto;">
+                    <!-- Checkboxes will be populated dynamically -->
+                </div>
+            </label>
+        </div>
+    </div>
+
+    <!-- SLIDERS BELOW FILTERS -->
+    <div class="slider-group" style="margin-bottom: 20px;">
+        <label>Year Range:</label>
+        <div id="yearSlider"></div>
+    </div>
+
+    <div class="slider-group" style="margin-bottom: 20px;">
+        <label>Rating Range:</label>
+        <div id="ratingSlider"></div>
+    </div>
+
+    <!-- VISUALIZATION SVG TARGET -->
+    <div id="vis"></div>
+
+    <!-- TOOLTIP -->
+    <div id="tooltip" class="tooltip"></div>
+
+    <!-- JS SCRIPT -->
+    <script src="js/script.js"></script>
+</body>
 </html>
