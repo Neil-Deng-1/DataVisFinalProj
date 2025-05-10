@@ -63,3 +63,62 @@ input[type="checkbox"] {
     margin-left: 5px;
     margin-right: 10px;
 }
+#controls {
+    margin-bottom: 20px;
+}
+
+#controls > div {
+    display: flex;
+    flex-direction: column;
+}
+
+#genreCheckboxes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    width: 300px;
+    font-size: 12px;
+    border: 1px solid #ccc;
+    padding: 6px;
+    background-color: #f9f9f9;
+}
+
+#genreCheckboxes label {
+    display: block;
+    margin-bottom: 10px;
+}
+
+#clearGenresBtn {
+    background-color: #f44336;       /* red */
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: bold;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-bottom: 10px;
+    transition: background-color 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+#clearGenresBtn:hover {
+    background-color: #d32f2f;
+}
+
+#selectAllGenresBtn {
+    background-color: #4CAF50; /* green */
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: bold;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+#selectAllGenresBtn:hover {
+    background-color: #388E3C;
+}
