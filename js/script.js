@@ -35,7 +35,7 @@ g.append("text")
 const tooltip = d3.select("#tooltip");
 
 function init() {
-    d3.csv("./data/imdbPopularMovies.csv", d => ({
+    d3.csv("./data/imdbPopularMoviesPoster.csv", d => ({
         index: +d.index,
         id: d.tconst,
         title: d.primaryTitle,
@@ -224,12 +224,13 @@ function updateVis() {
                             .style("display", 'block')
                             .style("visibility", "visible")
                             .html(`
+                                <img src=  "https://image.tmdb.org/t/p/original/${d.poster}" height="200" alt= "movie poster"><br>
                                 <strong>${d.title}</strong><br>
-                                <em>click to go visit imdb page in new tab</em>
-                                Year: ${d.year}<br>
+                                Release Date: ${d.releaseDate}<br>
                                 Rating: ${d.averageRating}<br>
                                 Worldwide Earnings: $${d.boxOffice.toLocaleString()}<br>
-                                Director: ${d.director} <br>
+                                Director: ${d.director}<br><br>
+                                <em>click to go visit imdb page <br>in a new tab</em><br>
                             `)
                             .style("left", (event.pageX + 20) + "px")
                             .style("top", (event.pageY - 28) + "px");
@@ -277,12 +278,13 @@ function updateVis() {
                             .style("display", 'block')
                             .style("visibility", "visible")
                             .html(`
+                                <img src=  "https://image.tmdb.org/t/p/original/${d.poster}" height="200" alt= "movie poster"><br>
                                 <strong>${d.title}</strong><br>
-                                <em>click to go visit imdb page in new tab</em>
-                                Year: ${d.year}<br>
+                                Release Date: ${d.releaseDate}<br>
                                 Rating: ${d.averageRating}<br>
                                 Worldwide Earnings: $${d.boxOffice.toLocaleString()}<br>
-                                Director: ${d.director}
+                                Director: ${d.director}<br><br>
+                                <em>click to go visit imdb page <br>in a new tab</em><br>
                             `)
                             .style("left", (event.pageX + 20) + "px")
                             .style("top", (event.pageY - 28) + "px");
