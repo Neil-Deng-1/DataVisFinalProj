@@ -233,7 +233,9 @@ function updateVis() {
                                 <em>click to go visit imdb page <br>in a new tab</em><br>
                             `)
                             .style("left", (event.pageX + 20) + "px")
-                            .style("top", (event.pageY - 28) + "px");
+                            .style("top", (event.pageY - 28) + "px")
+                            console.log(`https://image.tmdb.org/t/p/original/${d.poster}`)
+                            ;
                     })
                     .on("mouseout", function() {
                         d3.select(this)
