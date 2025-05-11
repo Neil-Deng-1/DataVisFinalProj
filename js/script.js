@@ -35,7 +35,7 @@ g.append("text")
 const tooltip = d3.select("#tooltip");
 
 function init() {
-    d3.csv("./data/imdbPopularMoviesPoster.csv", d => ({
+    d3.csv("./data/popularMoviesBoxOfficeAndPoster.csv", d => ({
         index: +d.index,
         id: d.tconst,
         title: d.primaryTitle,
