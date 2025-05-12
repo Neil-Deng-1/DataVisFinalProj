@@ -194,9 +194,20 @@ function updateVis() {
         .style("text-anchor", "end");
 
     let y;
+    function determinePointSize(maxCount){
+        if(maxCount < 10){
+            return 15
+        }
+        if(maxCount < 20){
+            return 10
+        }
+        return ((svgHeight/2)-100)/maxCount
 
-    if (currentYAxisMode === "count") {
-        const maxCount = d3.max(years, year => yearGroups.get(year).length);
+    }
+    const t = 1000;
+    const maxCount = d3.max(years, year => yearGroups.get(year).length);
+    if (currentYAxisMode === "count") {     
+        pointSize = determinePointSize(maxCount);
         y = d3.scaleLinear()
             .domain([0, maxCount])
             .range([svgHeight - margin.top - margin.bottom, 0]);
@@ -212,13 +223,13 @@ function updateVis() {
                 g.append("circle")
                     .attr("cx", x(year) + x.bandwidth() / 2)
                     .attr("cy", y(i + 1))
-                    .attr("r", 3)
+                    .attr("r", pointSize)
                     .attr("fill", "steelblue")
                     .on('mouseover', function(event) {
                         d3.select(this)
                             .transition()
                             .duration(100)
-                            .attr("r", 6)
+                            .attr("r", pointSize*1.5)
                             .attr("stroke", "black")
                             .attr("stroke-width", 1);
         
@@ -235,20 +246,20 @@ function updateVis() {
                                 <em>click to go visit imdb page <br>in a new tab</em><br>
                             `)
                             .style("left", (event.pageX + 20) + "px")
-                            .style("top", (event.pageY - 28) + "px");
+                            .style("top", (event.pageY - 28) + "px")
                     })
                     .on("mouseout", function() {
                         d3.select(this)
                             .transition()
                             .duration(100)
-                            .attr("r", 3)
+                            .attr("r", pointSize)
                             .attr("stroke", "none");
         
                         tooltip.style("display", "none");
                     }).on("click", () => {
                         link  = `https://www.imdb.com/title/${d.id}/`
                         window.open(link, '_blank')
-                    });
+                    })
             });
         });
         
@@ -259,20 +270,20 @@ function updateVis() {
 
         g.append("g").call(d3.axisLeft(y));
         d3.select("#y-axis-label").text("Rating");
-
+        pointSize = determinePointSize(maxCount);
         years.forEach(year => {
             const movies = yearGroups.get(year);
             movies.forEach(d => {
                 g.append("circle")
                     .attr("cx", x(year) + x.bandwidth() / 2)
                     .attr("cy", y(d.averageRating))
-                    .attr("r", 4)
+                    .attr("r", determinePointSize(maxCount))
                     .attr("fill", "darkorange")
                     .on('mouseover', function(event) {
                         d3.select(this)
                             .transition()
                             .duration(100)
-                            .attr("r", 8)
+                            .attr("r", pointSize*1.5)
                             .attr("stroke", "black")
                             .attr("stroke-width", 1);
 
@@ -295,7 +306,7 @@ function updateVis() {
                         d3.select(this)
                             .transition()
                             .duration(100)
-                            .attr("r", 4)
+                            .attr("r", pointSize )
                             .attr("stroke", "none");
 
                         tooltip.style("display", "none");
@@ -309,6 +320,3 @@ function updateVis() {
 }
 
 window.addEventListener("load", init);
-//ignore this comment1
-//ignore this comment2
-//ignore this comment3
