@@ -1,6 +1,6 @@
 console.log('D3 Version:', d3.version);
 
-const margin = { top: 30, right: 30, bottom: 60, left: 60 };
+const margin = { top: 30, right: 30, bottom: 60, left: 80 };
 const width = window.innerWidth - margin.left - margin.right;
 const svgHeight = 600;
 
@@ -12,6 +12,8 @@ let directorFilter = "";
 let titleFilter = "";
 let genreFilter = [];
 let currentYAxisMode = "count"; // "count" or "rating"
+
+let currentActiveVis = "dotPlot";
 
 const svg = d3.select("#vis")
     .append("svg")
@@ -25,8 +27,8 @@ const g = svg.append("g")
 g.append("text")
     .attr("id", "y-axis-label")
     .attr("transform", "rotate(-90)")
-    .attr("x", -svgHeight / 2)
-    .attr("y", -45)
+    .attr("x", -((svgHeight - margin.top - margin.bottom) / 2))
+    .attr("y", -margin.left + 15)
     .attr("dy", "1em")
     .style("text-anchor", "middle")
     .style("font-size", "14px")
@@ -34,7 +36,45 @@ g.append("text")
 
 const tooltip = d3.select("#tooltip");
 
+const streamgraph_margin = { top: 20, right: 120, bottom: 50, left: 50 };
+const streamgraph_content_width = width;
+const streamgraph_chart_width = streamgraph_content_width - streamgraph_margin.left - streamgraph_margin.right;
+const streamgraph_chart_height = 450;
+
+const streamgraphSvgContainer = d3.select("#streamgraph-vis-container")
+    .append("svg")
+    .attr("id", "streamgraph-svg-element")
+    .attr("width", streamgraph_content_width + streamgraph_margin.left + streamgraph_margin.right)
+    .attr("height", streamgraph_chart_height + streamgraph_margin.top + streamgraph_margin.bottom);
+
+const streamgraphG = streamgraphSvgContainer.append("g")
+    .attr("transform", `translate(${streamgraph_margin.left},${streamgraph_margin.top})`);
+
 function init() {
+    d3.select("#tab-dotplot").on("click", function() {
+        if (currentActiveVis === "dotPlot") return;
+        currentActiveVis = "dotPlot";
+        d3.selectAll(".tab-button").classed("active", false);
+        d3.select(this).classed("active", true);
+
+        d3.select("#vis").classed("hidden", false);
+        d3.select("#streamgraph-vis-container").classed("hidden", true);
+        d3.select("#y-axis-control-wrapper").classed("hidden", false);
+        updateVis();
+    });
+
+    d3.select("#tab-streamgraph").on("click", function() {
+        if (currentActiveVis === "streamgraph") return;
+        currentActiveVis = "streamgraph";
+        d3.selectAll(".tab-button").classed("active", false);
+        d3.select(this).classed("active", true);
+
+        d3.select("#vis").classed("hidden", true);
+        d3.select("#streamgraph-vis-container").classed("hidden", false);
+        d3.select("#y-axis-control-wrapper").classed("hidden", true);
+        updateVis();
+    });
+
     d3.csv("./data/popularMoviesBoxOfficeAndPoster.csv", d => ({
         index: +d.index,
         id: d.tconst,
@@ -69,6 +109,7 @@ function setupSelector() {
         .displayValue(true)
         .width(width - 60)
         .default([minYear, maxYear])
+        .tickFormat(d3.format("d"))
         .on('onchange', val => {
             yearRange = val;
             updateVis();
@@ -112,9 +153,6 @@ function setupSelector() {
             titleFilter = d3.select("#titleSearch").property("value").toLowerCase();
             updateVis();
         });
-    
-
-    d3.select("#adultCheck").on("change", updateVis);
 
     const genreSet = new Set();
     allData.forEach(d => {
@@ -181,17 +219,18 @@ function updateVis() {
 
     g.selectAll("*:not(#y-axis-label)").remove(); // Keep y-axis label
 
-    const x = d3.scaleBand()
-        .domain(years)
-        .range([0, width])
-        .padding(0.2);
+    if (currentActiveVis === "dotPlot") {
+        const x = d3.scaleBand()
+            .domain(years)
+            .range([0, width])
+            .padding(0.2);
 
-    g.append("g")
-        .attr("transform", `translate(0,${svgHeight - margin.top - margin.bottom})`)
-        .call(d3.axisBottom(x).tickFormat(d3.format("d")))
-        .selectAll("text")
-        .attr("transform", "rotate(-45)")
-        .style("text-anchor", "end");
+        g.append("g")
+            .attr("transform", `translate(0,${svgHeight - margin.top - margin.bottom})`)
+            .call(d3.axisBottom(x).tickFormat(d3.format("d")))
+            .selectAll("text")
+            .attr("transform", "rotate(-45)")
+            .style("text-anchor", "end");
 
     let y;
     function determinePointSize(maxCount){
@@ -212,8 +251,8 @@ function updateVis() {
             .domain([0, maxCount])
             .range([svgHeight - margin.top - margin.bottom, 0]);
 
-        g.append("g").call(d3.axisLeft(y));
-        d3.select("#y-axis-label").text("Movie Count");
+            g.append("g").call(d3.axisLeft(y));
+            d3.select("#y-axis-label").text("Movie Count");
 
         years.forEach(year => {
             const movies = yearGroups.get(year).slice().sort((a, b) =>
@@ -309,14 +348,185 @@ function updateVis() {
                             .attr("r", pointSize )
                             .attr("stroke", "none");
 
-                        tooltip.style("display", "none");
-                    }).on("click", () => {
-                        link  = `https://www.imdb.com/title/${d.id}/`
-                        window.open(link, '_blank')
-                    });
+                            tooltip.style("display", "none");
+                        }).on("click", () => {
+                            link  = `https://www.imdb.com/title/${d.id}/`
+                            window.open(link, '_blank')
+                        });
+                });
             });
-        });
+        } else if (currentYAxisMode === "boxoffice") {
+            const maxBox = d3.max(filteredData, d => d.boxOffice || 0);
+            const y = d3.scaleLinear()
+                .domain([0, maxBox])
+                .range([svgHeight - margin.top - margin.bottom, 0]);
+        
+            g.append("g").call(d3.axisLeft(y).tickFormat(d => d3.format("$.2s")(d).replace("G", "B")));
+            d3.select("#y-axis-label").text("Worldwide Box Office");
+        
+            years.forEach(year => {
+                const movies = yearGroups.get(year).filter(d => d.boxOffice > 0);
+                movies.forEach(d => {
+                    const cx = x(year) + x.bandwidth() / 2;
+                    const cy = y(d.boxOffice || 0);
+        
+                    g.append("circle")
+                        .attr("cx", cx)
+                        .attr("cy", cy)
+                        .attr("r", 4)
+                        .attr("fill", "seagreen")
+                        .on("mouseover", function(event) {
+                            d3.select(this)
+                                .transition().duration(100)
+                                .attr("r", 8)
+                                .attr("stroke", "black");
+        
+                            tooltip
+                                .style("display", "block")
+                                .html(`
+                                    <img src="https://image.tmdb.org/t/p/original/${d.poster}" height="200"><br>
+                                    <strong>${d.title}</strong><br>
+                                    Release Date: ${d.releaseDate}<br>
+                                    Rating: ${d.averageRating}<br>
+                                    Worldwide Earnings: $${d.boxOffice.toLocaleString()}<br>
+                                    Director: ${d.director}<br><br>
+                                    <em>Click to view IMDb</em>
+                                `)
+                                .style("left", (event.pageX + 20) + "px")
+                                .style("top", (event.pageY - 28) + "px");
+                        })
+                        .on("mouseout", function() {
+                            d3.select(this)
+                                .transition().duration(100)
+                                .attr("r", 4)
+                                .attr("stroke", "none");
+        
+                            tooltip.style("display", "none");
+                        })
+                        .on("click", () => {
+                            window.open(`https://www.imdb.com/title/${d.id}/`, "_blank");
+                        });
+                });
+            });
+        }
+    } else if (currentActiveVis === "streamgraph") {
+        drawStreamgraph(filteredData, genreFilter);
     }
+}
+
+function drawStreamgraph(sourceData, streamKeys) {
+    streamgraphG.selectAll("*").remove();
+
+    if (streamKeys.length === 0 || sourceData.length === 0) {
+        streamgraphG.append("text")
+            .attr("x", streamgraph_chart_width / 2)
+            .attr("y", streamgraph_chart_height / 2)
+            .attr("text-anchor", "middle")
+            .style("font-size", "14px")
+            .text(streamKeys.length === 0 ? "Select genre(s) to see trends." : "No data matches filters for Streamgraph.");
+        return;
+    }
+
+    let minStreamYear = yearRange[0];
+    let maxStreamYear = yearRange[1];
+    const dataMinYear = d3.min(sourceData, d => d.year);
+    const dataMaxYear = d3.max(sourceData, d => d.year);
+    if (dataMinYear !== undefined) minStreamYear = Math.max(minStreamYear, dataMinYear);
+    if (dataMaxYear !== undefined) maxStreamYear = Math.min(maxStreamYear, dataMaxYear);
+    
+    if (minStreamYear > maxStreamYear) {
+        streamgraphG.append("text").attr("x", streamgraph_chart_width / 2).attr("y", streamgraph_chart_height / 2)
+            .attr("text-anchor", "middle").text("No valid year range after filtering.");
+        return;
+    }
+
+    const streamYears = d3.range(minStreamYear, maxStreamYear + 1);
+    if (streamYears.length === 0) {
+        streamgraphG.append("text").attr("x", streamgraph_chart_width / 2).attr("y", streamgraph_chart_height / 2)
+            .attr("text-anchor", "middle").text("Not enough year range to display trend.");
+        return;
+    }
+
+    const streamFormattedData = streamYears.map(year => {
+        const yearEntry = { year: year };
+        streamKeys.forEach(genreKey => { yearEntry[genreKey] = 0; });
+        sourceData.forEach(movie => {
+            if (movie.year === year) {
+                const movieGenres = movie.genres.split(',').map(g => g.trim());
+                streamKeys.forEach(genreKey => {
+                    if (movieGenres.includes(genreKey)) { yearEntry[genreKey]++; }
+                });
+            }
+        });
+        return yearEntry;
+    });
+
+    const xStream = d3.scaleLinear()
+        .domain(d3.extent(streamFormattedData, d => d.year))
+        .range([0, streamgraph_chart_width]);
+
+    streamgraphG.append("g")
+        .attr("transform", `translate(0,${streamgraph_chart_height})`)
+        .call(d3.axisBottom(xStream).tickFormat(d3.format("d")).ticks(Math.min(streamYears.length, 10)))
+        .selectAll("text")
+        .attr("transform", "rotate(-45)")
+        .style("text-anchor", "end");
+
+    const colorStream = d3.scaleOrdinal(d3.schemeCategory10).domain(streamKeys);
+
+    const stack = d3.stack()
+        .keys(streamKeys)
+        .offset(d3.stackOffsetWiggle)
+        .order(d3.stackOrderNone);
+    const series = stack(streamFormattedData);
+
+    const yStream = d3.scaleLinear()
+        .domain([
+            d3.min(series, s => d3.min(s, d => d[0])) || 0,
+            d3.max(series, s => d3.max(s, d => d[1])) || 1 
+        ])
+        .range([streamgraph_chart_height, 0]);
+
+    const areaStream = d3.area()
+        .x(d => xStream(d.data.year))
+        .y0(d => yStream(d[0]))
+        .y1(d => yStream(d[1]))
+        .curve(d3.curveBasis);
+
+    streamgraphG.append("g")
+        .selectAll(".stream-layer")
+        .data(series)
+        .join("path")
+        .attr("class", "stream-layer")
+        .style("fill", d => colorStream(d.key))
+        .attr("d", areaStream)
+        .on('mouseover', function(event, d_layer) {
+            tooltip.style("visibility", "visible").style("display", "block");
+            streamgraphG.selectAll(".stream-layer").style("opacity", 0.3);
+            d3.select(this).style("opacity", 1).style("stroke", "black").style("stroke-width", "0.5px");
+        })
+        .on('mousemove', function(event, d_layer) {
+            const [mx] = d3.pointer(event, streamgraphG.node());
+            const hoveredYear = Math.round(xStream.invert(mx));
+            const yearDataPoint = streamFormattedData.find(d => d.year === hoveredYear);
+            const value = yearDataPoint ? (yearDataPoint[d_layer.key] || 0) : 0;
+            tooltip.html(`<b>${d_layer.key}</b><br>Year: ${hoveredYear}<br>Movies: ${value}`)
+                .style("left", (event.pageX + 15) + "px")
+                .style("top", (event.pageY - 15) + "px");
+        })
+        .on('mouseout', function() {
+            tooltip.style("visibility", "hidden").style("display", "none");
+            streamgraphG.selectAll(".stream-layer").style("opacity", 1).style("stroke", "none");
+        });
+
+    const legend = streamgraphG.append("g")
+        .attr("class", "streamgraph-legend")
+        .attr("transform", `translate(${streamgraph_chart_width + 15}, 0)`);
+    streamKeys.forEach((key, i) => {
+        const legendItem = legend.append("g").attr("class", "streamgraph-legend-item").attr("transform", `translate(0, ${i * 20})`);
+        legendItem.append("rect").attr("x", 0).attr("y", -5).attr("width", 10).attr("height", 10).style("fill", colorStream(key));
+        legendItem.append("text").attr("x", 15).attr("y", 0).text(key);
+    });
 }
 
 window.addEventListener("load", init);
