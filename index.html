@@ -2,21 +2,23 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Movie Dot Plot</title>
+    <title>Movie Visualization Hub</title> 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- D3 & Slider libraries -->
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://unpkg.com/d3-simple-slider"></script>
 
-    <!-- Your stylesheet -->
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 
-    <h1>Movie Dot Plot</h1>
+    <h1>Movie Visualization Hub</h1> 
 
-    <!-- FILTER CONTROLS (Flex Layout) -->
+    <div id="tabs-container">
+        <button id="tab-dotplot" class="tab-button active">Dot Plot</button>
+        <button id="tab-streamgraph" class="tab-button">Streamgraph</button>
+    </div>
+
     <div id="controls" style="display: flex; flex-wrap: wrap; gap: 20px; align-items: center;">
         <div>
             <label>
@@ -29,22 +31,17 @@
             </label>
         </div>
 
-        <div>
-            <label>
-                Adult Films:<br>
-                <input type="checkbox" id="adultCheck">
-            </label>
-        </div>
-
-        <div>
+        <div id="y-axis-control-wrapper">
             <label>
                 Y-Axis:<br>
                 <select id="y-axis-select">
                     <option value="count">Count</option>
                     <option value="rating">Rating</option>
+                    <option value="boxoffice">Box Office</option>
                 </select>
             </label>
         </div>
+
 
         <div>
             <label>
@@ -52,13 +49,11 @@
                 <button id="selectAllGenresBtn" style="margin-bottom: 6px; margin-right: 6px;">Select All</button>
                 <button id="clearGenresBtn" style="margin-bottom: 6px;">Clear All</button>
                 <div id="genreCheckboxes" style="max-height: 150px; overflow-y: auto;">
-                    <!-- Checkboxes will be populated dynamically -->
                 </div>
             </label>
         </div>
     </div>
 
-    <!-- SLIDERS BELOW FILTERS -->
     <div class="slider-group" style="margin-bottom: 20px;">
         <label>Year Range:</label>
         <div id="yearSlider"></div>
@@ -69,13 +64,13 @@
         <div id="ratingSlider"></div>
     </div>
 
-    <!-- VISUALIZATION SVG TARGET -->
     <div id="vis"></div>
 
-    <!-- TOOLTIP -->
+    <div id="streamgraph-vis-container" class="hidden">
+    </div>
+
     <div id="tooltip" class="tooltip"></div>
 
-    <!-- JS SCRIPT -->
     <script src="js/script.js"></script>
 </body>
 </html>
