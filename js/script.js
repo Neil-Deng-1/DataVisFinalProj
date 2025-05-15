@@ -15,6 +15,8 @@ let currentYAxisMode = "count"; // "count" or "rating"
 
 let currentActiveVis = "dotPlot";
 
+const genreColor = d3.scaleOrdinal(d3.schemeCategory10);
+
 const svg = d3.select("#vis")
     .append("svg")
     .attr("width", width + margin.left + margin.right)
@@ -96,6 +98,30 @@ function init() {
     })
     .catch(error => console.error("Data load error:", error));
 }
+
+/* Change the legend colors */
+function updateLegend(selectedGenres) {
+    const legendContainer = d3.select("#legend");
+    legendContainer.selectAll("*").remove(); 
+
+    selectedGenres.forEach(genre => {
+        const legendItem = legendContainer.append("div")
+            .attr("class", "legend-item")
+            .style("display", "flex")
+            .style("align-items", "center")
+            .style("margin", "4px 0");
+
+        legendItem.append("span")
+            .style("width", "15px")
+            .style("height", "15px")
+            .style("background-color", genreColor(genre))
+            .style("display", "inline-block")
+            .style("margin-right", "8px");
+
+        legendItem.append("span").text(genre);
+    });
+}
+
 
 function setupSelector() {
     const minYear = d3.min(allData, d => d.year);
@@ -180,11 +206,13 @@ function setupSelector() {
         d3.selectAll(".genre-checkbox").each(function () {
             genreFilter.push(this.value);
         });
+        updateLegend(genreFilter);
         updateVis();
     });
     d3.select("#clearGenresBtn").on("click", () => {
         d3.selectAll(".genre-checkbox").property("checked", false);
         genreFilter = [];
+        updateLegend(genreFilter);
         updateVis();
     });
     // Event listener for checkboxes
@@ -193,6 +221,7 @@ function setupSelector() {
         d3.selectAll(".genre-checkbox:checked").each(function() {
             genreFilter.push(this.value);
         });
+        updateLegend(genreFilter);
         updateVis();
     });
 
@@ -203,7 +232,7 @@ function setupSelector() {
 }
 
 function updateVis() {
-
+/*
     filteredData = allData.filter(d =>
         d.year >= yearRange[0] &&
         d.year <= yearRange[1] &&
@@ -213,6 +242,37 @@ function updateVis() {
         (!directorFilter || (d.director && d.director.toLowerCase().includes(directorFilter))) &&
         (!titleFilter || (d.title && d.title.toLowerCase().includes(titleFilter)))
     );
+    */
+   
+
+    
+    filteredData = [];
+
+    allData.forEach(d => {
+        if (
+            d.year >= yearRange[0] &&
+            d.year <= yearRange[1] &&
+            d.averageRating >= ratingRange[0] &&
+            d.averageRating <= ratingRange[1] &&
+            (!directorFilter || (d.director && d.director.toLowerCase().includes(directorFilter))) &&
+            (!titleFilter || (d.title && d.title.toLowerCase().includes(titleFilter)))
+        ) {
+            const genres = d.genres ? d.genres.split(',').map(g => g.trim()) : [];
+            genres.forEach(genre => {
+                if (genreFilter.includes(genre)) {
+                    filteredData.push({
+                        ...d,
+                        genre: genre
+                    });
+                }
+            });
+        }
+    });
+    
+    
+    console.log("Genre Filter:", genreFilter);
+
+    console.log("Filtered Data:", filteredData);
 
     const yearGroups = d3.group(filteredData, d => d.year);
     const years = Array.from(yearGroups.keys()).sort(d3.ascending);
@@ -252,7 +312,7 @@ function updateVis() {
                         .attr("cx", x(year) + x.bandwidth() / 2)
                         .attr("cy", y(i + 1))
                         .attr("r", 3)
-                        .attr("fill", "steelblue")
+                        .attr("fill", genreColor(d.genre))
                         .on('mouseover', function(event) {
                             d3.select(this)
                                 .transition()
@@ -306,7 +366,7 @@ function updateVis() {
                         .attr("cx", x(year) + x.bandwidth() / 2)
                         .attr("cy", y(d.averageRating))
                         .attr("r", 4)
-                        .attr("fill", "darkorange")
+                        .attr("fill", genreColor(d.genre))
                         .on('mouseover', function(event) {
                             d3.select(this)
                                 .transition()
@@ -363,7 +423,7 @@ function updateVis() {
                         .attr("cx", cx)
                         .attr("cy", cy)
                         .attr("r", 4)
-                        .attr("fill", "seagreen")
+                        .attr("fill", genreColor(d.genre))
                         .on("mouseover", function(event) {
                             d3.select(this)
                                 .transition().duration(100)
