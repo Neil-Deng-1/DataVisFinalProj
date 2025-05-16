@@ -285,6 +285,13 @@ function updateVis() {
 
             g.append("g").call(d3.axisLeft(y));
             d3.select("#y-axis-label").text("Movie Count");
+            g.append("text")
+            .attr("class", "x-axis-label")
+            .attr("x", width / 2 - 40)
+            .attr("y", svgHeight - 40)
+            .style("text-anchor", "middle")
+            .style("font-size", "14px")
+            .text("Year");
 
             years.forEach(year => {
                 const movies = yearGroups.get(year).slice().sort((a, b) =>
@@ -317,8 +324,14 @@ function updateVis() {
                                     Director: ${d.director}<br><br>
                                     <em>click to go visit imdb page <br>in a new tab</em><br>
                                 `)
-                                .style("left", (event.pageX + 20) + "px")
-                                .style("top", (event.pageY - 28) + "px");
+                                .style("left", () => {
+                                    const tooltipWidth = 200;
+                                    return Math.min(event.pageX + 20, window.innerWidth - tooltipWidth - 20) + "px";
+                                })
+                                .style("top", () => {
+                                    const tooltipHeight = 150;
+                                    return Math.max(20, event.pageY - tooltipHeight) + "px";
+                                });
                         })
                         .on("mouseout", function() {
                             d3.select(this)
@@ -372,8 +385,14 @@ function updateVis() {
                                     Director: ${d.director}<br><br>
                                     <em>click to go visit imdb page <br>in a new tab</em><br>
                                 `)
-                                .style("left", (event.pageX + 20) + "px")
-                                .style("top", (event.pageY - 28) + "px");
+                                .style("left", () => {
+                                    const tooltipWidth = 200;
+                                    return Math.min(event.pageX + 20, window.innerWidth - tooltipWidth - 20) + "px";
+                                })
+                                .style("top", () => {
+                                    const tooltipHeight = 150;
+                                    return Math.max(20, event.pageY - tooltipHeight) + "px";
+                                });
                         })
                         .on("mouseout", function() {
                             d3.select(this)
@@ -429,8 +448,14 @@ function updateVis() {
                                     Director: ${d.director}<br><br>
                                     <em>Click to view IMDb</em>
                                 `)
-                                .style("left", (event.pageX + 20) + "px")
-                                .style("top", (event.pageY - 28) + "px");
+                                .style("left", () => {
+                                    const tooltipWidth = 200;
+                                    return Math.min(event.pageX + 20, window.innerWidth - tooltipWidth - 20) + "px";
+                                })
+                                .style("top", () => {
+                                    const tooltipHeight = 150;
+                                    return Math.max(20, event.pageY - tooltipHeight) + "px";
+                                });
                         })
                         .on("mouseout", function() {
                             d3.select(this)
