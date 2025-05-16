@@ -1,6 +1,6 @@
 console.log('D3 Version:', d3.version);
 
-const margin = { top: 30, right: 30, bottom: 60, left: 80 };
+const margin = { top: 30, right: 80, bottom: 60, left: 80 };
 const width = window.innerWidth - margin.left - margin.right;
 const svgHeight = 600;
 
@@ -11,17 +11,16 @@ let ratingRange = [0, 10];
 let directorFilter = "";
 let titleFilter = "";
 let genreFilter = [];
-let currentYAxisMode = "count"; // "count" or "rating"
-
+let currentYAxisMode = "count"; // "count", "rating", "boxoffice"
 let currentActiveVis = "dotPlot";
 
 const genreColor = d3.scaleOrdinal(d3.schemeCategory10);
 
+// Dotplot SVG setup
 const svg = d3.select("#vis")
     .append("svg")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", svgHeight)
-    .attr("preserveAspectRatio", "xMidYMid meet");
+    .attr("width", width)
+    .attr("height", svgHeight);
 
 const g = svg.append("g")
     .attr("transform", `translate(${margin.left},${margin.top})`);
@@ -36,21 +35,17 @@ g.append("text")
     .style("font-size", "14px")
     .text("Y Axis");
 
-const tooltip = d3.select("#tooltip");
-
-const streamgraph_margin = { top: 20, right: 120, bottom: 50, left: 50 };
-const streamgraph_content_width = width;
-const streamgraph_chart_width = streamgraph_content_width - streamgraph_margin.left - streamgraph_margin.right;
-const streamgraph_chart_height = 450;
-
-const streamgraphSvgContainer = d3.select("#streamgraph-vis-container")
+// Streamgraph SVG setup
+const streamgraphSvg = d3.select("#streamgraph-vis-container")
     .append("svg")
     .attr("id", "streamgraph-svg-element")
-    .attr("width", streamgraph_content_width + streamgraph_margin.left + streamgraph_margin.right)
-    .attr("height", streamgraph_chart_height + streamgraph_margin.top + streamgraph_margin.bottom);
+    .attr("width", width)
+    .attr("height", svgHeight);
 
-const streamgraphG = streamgraphSvgContainer.append("g")
-    .attr("transform", `translate(${streamgraph_margin.left},${streamgraph_margin.top})`);
+const streamgraphG = streamgraphSvg.append("g")
+    .attr("transform", `translate(${margin.left},${margin.top})`);    
+
+const tooltip = d3.select("#tooltip");
 
 function init() {
     d3.select("#tab-dotplot").on("click", function() {
@@ -58,7 +53,6 @@ function init() {
         currentActiveVis = "dotPlot";
         d3.selectAll(".tab-button").classed("active", false);
         d3.select(this).classed("active", true);
-
         d3.select("#vis").classed("hidden", false);
         d3.select("#streamgraph-vis-container").classed("hidden", true);
         d3.select("#y-axis-control-wrapper").classed("hidden", false);
@@ -70,7 +64,6 @@ function init() {
         currentActiveVis = "streamgraph";
         d3.selectAll(".tab-button").classed("active", false);
         d3.select(this).classed("active", true);
-
         d3.select("#vis").classed("hidden", true);
         d3.select("#streamgraph-vis-container").classed("hidden", false);
         d3.select("#y-axis-control-wrapper").classed("hidden", true);
@@ -122,18 +115,18 @@ function updateLegend(selectedGenres) {
     });
 }
 
-
 function setupSelector() {
     const minYear = d3.min(allData, d => d.year);
     const maxYear = d3.max(allData, d => d.year);
     yearRange = [minYear, maxYear];
+    const sliderWidth = Math.min(960, width-45);
 
     const yearSlider = d3.sliderHorizontal()
         .min(minYear)
         .max(maxYear)
         .step(1)
         .displayValue(true)
-        .width(width - 60)
+        .width(sliderWidth)
         .default([minYear, maxYear])
         .tickFormat(d3.format("d"))
         .on('onchange', val => {
@@ -154,7 +147,7 @@ function setupSelector() {
         .max(10)
         .step(0.1)
         .displayValue(true)
-        .width(width - 60)
+        .width(sliderWidth)
         .default([0, 10])
         .on('onchange', val => {
             ratingRange = val;
@@ -169,16 +162,21 @@ function setupSelector() {
         .attr("transform", "translate(30,20)")
         .call(ratingSlider);
 
-    d3.select("#directorSearch")
-        .on("input", () => {
-            directorFilter = d3.select("#directorSearch").property("value").toLowerCase();
-            updateVis();
-        });
-    d3.select("#titleSearch")
-        .on("input", () => {
-            titleFilter = d3.select("#titleSearch").property("value").toLowerCase();
-            updateVis();
-        });
+
+    d3.select("#directorSearch").on("input", () => {
+        directorFilter = d3.select("#directorSearch").property("value").toLowerCase();
+        updateVis();
+    });
+
+    d3.select("#titleSearch").on("input", () => {
+        titleFilter = d3.select("#titleSearch").property("value").toLowerCase();
+        updateVis();
+    });
+
+    d3.select("#y-axis-select").on("change", function () {
+        currentYAxisMode = this.value;
+        updateVis();
+    });
 
     const genreSet = new Set();
     allData.forEach(d => {
@@ -188,18 +186,16 @@ function setupSelector() {
     });
     const genres = Array.from(genreSet).sort();
 
-   // Replace dropdown with checkbox container
+    // Replace dropdown with checkbox container
     const checkboxContainer = d3.select("#genreCheckboxes");
-
 
     checkboxContainer.selectAll("label")
         .data(genres)
         .enter()
         .append("label")
         .style("display", "block")
-        .html(genre => `
-            <input type="checkbox" value="${genre}" class="genre-checkbox"> ${genre}
-        `);
+        .html(genre => `<input type="checkbox" value="${genre}" class="genre-checkbox"> ${genre}`);
+
     d3.select("#selectAllGenresBtn").on("click", () => {
         genreFilter = [];
         d3.selectAll(".genre-checkbox").property("checked", true);
@@ -209,12 +205,14 @@ function setupSelector() {
         updateLegend(genreFilter);
         updateVis();
     });
+
     d3.select("#clearGenresBtn").on("click", () => {
         d3.selectAll(".genre-checkbox").property("checked", false);
         genreFilter = [];
         updateLegend(genreFilter);
         updateVis();
     });
+
     // Event listener for checkboxes
     d3.selectAll(".genre-checkbox").on("change", () => {
         genreFilter = [];
@@ -224,30 +222,10 @@ function setupSelector() {
         updateLegend(genreFilter);
         updateVis();
     });
-
-    d3.select("#y-axis-select").on("change", function () {
-        currentYAxisMode = this.value;
-        updateVis();
-    });
 }
 
 function updateVis() {
-/*
-    filteredData = allData.filter(d =>
-        d.year >= yearRange[0] &&
-        d.year <= yearRange[1] &&
-        d.averageRating >= ratingRange[0] &&
-        d.averageRating <= ratingRange[1] &&
-        genreFilter.some(g => d.genres.split(',').map(x => x.trim()).includes(g)) &&
-        (!directorFilter || (d.director && d.director.toLowerCase().includes(directorFilter))) &&
-        (!titleFilter || (d.title && d.title.toLowerCase().includes(titleFilter)))
-    );
-    */
-   
-
-    
     filteredData = [];
-
     allData.forEach(d => {
         if (
             d.year >= yearRange[0] &&
@@ -260,19 +238,17 @@ function updateVis() {
             const genres = d.genres ? d.genres.split(',').map(g => g.trim()) : [];
             genres.forEach(genre => {
                 if (genreFilter.includes(genre)) {
-                    filteredData.push({
-                        ...d,
-                        genre: genre
-                    });
+                    filteredData.push({ ...d, genre: genre });
                 }
             });
         }
     });
     
-    
     console.log("Genre Filter:", genreFilter);
 
     console.log("Filtered Data:", filteredData);
+
+    updateLegend(genreFilter);
 
     const yearGroups = d3.group(filteredData, d => d.year);
     const years = Array.from(yearGroups.keys()).sort(d3.ascending);
@@ -468,8 +444,8 @@ function drawStreamgraph(sourceData, streamKeys) {
 
     if (streamKeys.length === 0 || sourceData.length === 0) {
         streamgraphG.append("text")
-            .attr("x", streamgraph_chart_width / 2)
-            .attr("y", streamgraph_chart_height / 2)
+            .attr("x", width / 2)
+            .attr("y", svgHeight / 2)
             .attr("text-anchor", "middle")
             .style("font-size", "14px")
             .text(streamKeys.length === 0 ? "Select genre(s) to see trends." : "No data matches filters for Streamgraph.");
@@ -484,14 +460,14 @@ function drawStreamgraph(sourceData, streamKeys) {
     if (dataMaxYear !== undefined) maxStreamYear = Math.min(maxStreamYear, dataMaxYear);
     
     if (minStreamYear > maxStreamYear) {
-        streamgraphG.append("text").attr("x", streamgraph_chart_width / 2).attr("y", streamgraph_chart_height / 2)
+        streamgraphG.append("text").attr("x", width / 2).attr("y", svgHeight / 2)
             .attr("text-anchor", "middle").text("No valid year range after filtering.");
         return;
     }
 
     const streamYears = d3.range(minStreamYear, maxStreamYear + 1);
     if (streamYears.length === 0) {
-        streamgraphG.append("text").attr("x", streamgraph_chart_width / 2).attr("y", streamgraph_chart_height / 2)
+        streamgraphG.append("text").attr("x", width / 2).attr("y", svgHeight / 2)
             .attr("text-anchor", "middle").text("Not enough year range to display trend.");
         return;
     }
@@ -512,10 +488,10 @@ function drawStreamgraph(sourceData, streamKeys) {
 
     const xStream = d3.scaleLinear()
         .domain(d3.extent(streamFormattedData, d => d.year))
-        .range([0, streamgraph_chart_width]);
+        .range([0, width]);
 
     streamgraphG.append("g")
-        .attr("transform", `translate(0,${streamgraph_chart_height})`)
+        .attr("transform", `translate(0,${svgHeight})`)
         .call(d3.axisBottom(xStream).tickFormat(d3.format("d")).ticks(Math.min(streamYears.length, 10)))
         .selectAll("text")
         .attr("transform", "rotate(-45)")
@@ -534,7 +510,7 @@ function drawStreamgraph(sourceData, streamKeys) {
             d3.min(series, s => d3.min(s, d => d[0])) || 0,
             d3.max(series, s => d3.max(s, d => d[1])) || 1 
         ])
-        .range([streamgraph_chart_height, 0]);
+        .range([svgHeight, 0]);
 
     const areaStream = d3.area()
         .x(d => xStream(d.data.year))
@@ -570,7 +546,7 @@ function drawStreamgraph(sourceData, streamKeys) {
 
     const legend = streamgraphG.append("g")
         .attr("class", "streamgraph-legend")
-        .attr("transform", `translate(${streamgraph_chart_width + 15}, 0)`);
+        .attr("transform", `translate(${width + 15}, 0)`);
     streamKeys.forEach((key, i) => {
         const legendItem = legend.append("g").attr("class", "streamgraph-legend-item").attr("transform", `translate(0, ${i * 20})`);
         legendItem.append("rect").attr("x", 0).attr("y", -5).attr("width", 10).attr("height", 10).style("fill", colorStream(key));
@@ -579,6 +555,3 @@ function drawStreamgraph(sourceData, streamKeys) {
 }
 
 window.addEventListener("load", init);
-//ignore this comment1
-//ignore this comment2
-//ignore this comment3
