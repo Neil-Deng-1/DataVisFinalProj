@@ -250,7 +250,14 @@ function updateVis() {
 
     updateLegend(genreFilter);
 
-    const yearGroups = d3.group(filteredData, d => d.year);
+    let yearGroups;
+
+    if (currentYAxisMode === "boxoffice") {
+        const boxOfficeData = filteredData.filter(d => d.boxOffice > 0);
+        yearGroups = d3.group(boxOfficeData, d => d.year);
+    } else {
+        yearGroups = d3.group(filteredData, d => d.year);
+    }
     const years = Array.from(yearGroups.keys()).sort(d3.ascending);
 
     g.selectAll("*:not(#y-axis-label)").remove(); // Keep y-axis label
@@ -373,7 +380,8 @@ function updateVis() {
                                 .transition()
                                 .duration(100)
                                 .attr("r", 4)
-                                .attr("stroke", "none");
+                                .attr("stroke", "none")
+                                .attr("stroke-width", 1);
 
                             tooltip.style("display", "none");
                         }).on("click", () => {
@@ -395,7 +403,7 @@ function updateVis() {
                 const movies = yearGroups.get(year).filter(d => d.boxOffice > 0);
                 movies.forEach(d => {
                     const cx = x(year) + x.bandwidth() / 2;
-                    const cy = y(d.boxOffice || 0);
+                    const cy = y(d.boxOffice);
         
                     g.append("circle")
                         .attr("cx", cx)
