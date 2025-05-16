@@ -265,7 +265,7 @@ function updateVis() {
     if (currentActiveVis === "dotPlot") {
         const x = d3.scaleBand()
             .domain(years)
-            .range([0, width - 80])
+            .range([0, width - 100])
             .padding(0.2);
 
         g.append("g")
@@ -501,7 +501,7 @@ function drawStreamgraph(sourceData, streamKeys) {
 
     const xStream = d3.scaleLinear()
         .domain(d3.extent(streamFormattedData, d => d.year))
-        .range([0, width - 90]);
+        .range([0, width - 100]);
 
     streamgraphG.append("g")
         .attr("transform", `translate(0,${streamgraph_chart_height})`)
@@ -510,6 +510,14 @@ function drawStreamgraph(sourceData, streamKeys) {
         .selectAll("text")
         .attr("transform", "rotate(-45)")
         .style("text-anchor", "end");
+
+    streamgraphG.append("text")
+        .attr("class", "x-axis-label")
+        .attr("x", width / 2 - 40)
+        .attr("y", streamgraph_chart_height + 50)
+        .style("text-anchor", "middle")
+        .style("font-size", "14px")
+        .text("Year");
 
     const colorStream = d3.scaleOrdinal(d3.schemeCategory10).domain(streamKeys);
 
@@ -566,6 +574,7 @@ function drawStreamgraph(sourceData, streamKeys) {
         legendItem.append("rect").attr("x", 0).attr("y", -5).attr("width", 10).attr("height", 10).style("fill", colorStream(key));
         legendItem.append("text").attr("x", 15).attr("y", 0).text(key);
     });
+    
 }
 
 window.addEventListener("load", init);
