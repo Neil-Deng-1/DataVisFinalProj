@@ -265,7 +265,7 @@ function updateVis() {
     if (currentActiveVis === "dotPlot") {
         const x = d3.scaleBand()
             .domain(years)
-            .range([0, width])
+            .range([0, width - 80])
             .padding(0.2);
 
         g.append("g")
@@ -452,6 +452,7 @@ function updateVis() {
 }
 
 function drawStreamgraph(sourceData, streamKeys) {
+    const streamgraph_chart_height = 500
     streamgraphG.selectAll("*").remove();
 
     if (streamKeys.length === 0 || sourceData.length === 0) {
@@ -479,7 +480,7 @@ function drawStreamgraph(sourceData, streamKeys) {
 
     const streamYears = d3.range(minStreamYear, maxStreamYear + 1);
     if (streamYears.length === 0) {
-        streamgraphG.append("text").attr("x", width / 2).attr("y", svgHeight / 2)
+        streamgraphG.append("text").attr("x", width / 2).attr("y", streamgraph_chart_height / 2)
             .attr("text-anchor", "middle").text("Not enough year range to display trend.");
         return;
     }
@@ -500,11 +501,12 @@ function drawStreamgraph(sourceData, streamKeys) {
 
     const xStream = d3.scaleLinear()
         .domain(d3.extent(streamFormattedData, d => d.year))
-        .range([0, width]);
+        .range([0, width - 90]);
 
     streamgraphG.append("g")
-        .attr("transform", `translate(0,${svgHeight})`)
-        .call(d3.axisBottom(xStream).tickFormat(d3.format("d")).ticks(Math.min(streamYears.length, 10)))
+        .attr("transform", `translate(0,${streamgraph_chart_height})`)
+
+        .call(d3.axisBottom(xStream).tickValues(streamYears).tickFormat(d3.format("d")))
         .selectAll("text")
         .attr("transform", "rotate(-45)")
         .style("text-anchor", "end");
@@ -522,7 +524,7 @@ function drawStreamgraph(sourceData, streamKeys) {
             d3.min(series, s => d3.min(s, d => d[0])) || 0,
             d3.max(series, s => d3.max(s, d => d[1])) || 1 
         ])
-        .range([svgHeight, 0]);
+        .range([streamgraph_chart_height, 0]);
 
     const areaStream = d3.area()
         .x(d => xStream(d.data.year))
