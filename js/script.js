@@ -355,6 +355,13 @@ function updateVis() {
 
             g.append("g").call(d3.axisLeft(y));
             d3.select("#y-axis-label").text("Rating");
+            g.append("text")
+            .attr("class", "x-axis-label")
+            .attr("x", width / 2 - 40)
+            .attr("y", svgHeight - 40)
+            .style("text-anchor", "middle")
+            .style("font-size", "14px")
+            .text("Year");
 
             years.forEach(year => {
                 const movies = yearGroups.get(year);
@@ -417,6 +424,13 @@ function updateVis() {
         
             g.append("g").call(d3.axisLeft(y).tickFormat(d => d3.format("$.2s")(d).replace("G", "B")));
             d3.select("#y-axis-label").text("Worldwide Box Office");
+            g.append("text")
+            .attr("class", "x-axis-label")
+            .attr("x", width / 2 - 40)
+            .attr("y", svgHeight - 40)
+            .style("text-anchor", "middle")
+            .style("font-size", "14px")
+            .text("Year");
         
             years.forEach(year => {
                 const movies = yearGroups.get(year).filter(d => d.boxOffice > 0);
