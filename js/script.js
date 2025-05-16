@@ -382,7 +382,7 @@ function updateVis() {
             });
         } else if (currentYAxisMode === "boxoffice") {
             const maxBox = d3.max(filteredData, d => d.boxOffice || 0);
-            const y = d3.scaleLinear()
+            y = d3.scaleLinear()
                 .domain([0, maxBox])
                 .range([svgHeight - margin.top - margin.bottom, 0]);
         
@@ -408,6 +408,7 @@ function updateVis() {
         
                             tooltip
                                 .style("display", "block")
+                                .style("visibility", "visible")
                                 .html(`
                                     <img src="https://image.tmdb.org/t/p/original/${d.poster}" height="200"><br>
                                     <strong>${d.title}</strong><br>
