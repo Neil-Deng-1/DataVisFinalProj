@@ -303,9 +303,10 @@ function updateVis() {
                                 .html(`
                                     <img src=  "https://image.tmdb.org/t/p/original/${d.poster}" height="200" alt= "movie poster"><br>
                                     <strong>${d.title}</strong><br>
+                                    Genre: ${d.genre}<br>
                                     Release Date: ${d.releaseDate}<br>
                                     Rating: ${d.averageRating}<br>
-                                    Worldwide Earnings: $${d.boxOffice.toLocaleString()}<br>
+                                    Worldwide Earnings: ${d.boxOffice > 0 ? `$${d.boxOffice.toLocaleString()}` : "N/A"}<br>
                                     Director: ${d.director}<br><br>
                                     <em>click to go visit imdb page <br>in a new tab</em><br>
                                 `)
@@ -357,9 +358,10 @@ function updateVis() {
                                 .html(`
                                     <img src=  "https://image.tmdb.org/t/p/original/${d.poster}" height="200" alt= "movie poster"><br>
                                     <strong>${d.title}</strong><br>
+                                    Genre: ${d.genre}<br>
                                     Release Date: ${d.releaseDate}<br>
                                     Rating: ${d.averageRating}<br>
-                                    Worldwide Earnings: $${d.boxOffice.toLocaleString()}<br>
+                                    Worldwide Earnings: ${d.boxOffice > 0 ? `$${d.boxOffice.toLocaleString()}` : "N/A"}<br>
                                     Director: ${d.director}<br><br>
                                     <em>click to go visit imdb page <br>in a new tab</em><br>
                                 `)
@@ -412,9 +414,10 @@ function updateVis() {
                                 .html(`
                                     <img src="https://image.tmdb.org/t/p/original/${d.poster}" height="200"><br>
                                     <strong>${d.title}</strong><br>
+                                    Genre: ${d.genre}<br>
                                     Release Date: ${d.releaseDate}<br>
                                     Rating: ${d.averageRating}<br>
-                                    Worldwide Earnings: $${d.boxOffice.toLocaleString()}<br>
+                                    Worldwide Earnings: ${d.boxOffice > 0 ? `$${d.boxOffice.toLocaleString()}` : "N/A"}<br>
                                     Director: ${d.director}<br><br>
                                     <em>Click to view IMDb</em>
                                 `)
