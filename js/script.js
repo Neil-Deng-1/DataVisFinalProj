@@ -5,7 +5,8 @@ const width = window.innerWidth - margin.left - margin.right;
 const svgHeight = 600;
 
 let allData = [];
-let filteredData = [];
+let dotPlotData = [];
+let streamgraphData = [];
 let yearRange = [0, 0];
 let ratingRange = [0, 10];
 let directorFilter = "";
@@ -225,7 +226,8 @@ function setupSelector() {
 }
 
 function updateVis() {
-    filteredData = [];
+    dotPlotData = [];
+    streamgraphData = [];
     allData.forEach(d => {
         if (
             d.year >= yearRange[0] &&
@@ -236,28 +238,36 @@ function updateVis() {
             (!titleFilter || (d.title && d.title.toLowerCase().includes(titleFilter)))
         ) {
             const genres = d.genres ? d.genres.split(',').map(g => g.trim()) : [];
-            for (const genre of genres) {
+            let addedToDotPlot = false;
+            genres.forEach(genre => {
                 if (genreFilter.includes(genre)) {
-                    filteredData.push({ ...d, genre: genre }); 
-                    break; 
+                    // For streamgraph: always push duplicate genres
+                    streamgraphData.push({ ...d, genre });
+
+                    // For dot plot: push only the first matching genre
+                    if (!addedToDotPlot) {
+                        dotPlotData.push({ ...d, genre });
+                        addedToDotPlot = true;
+                    }
                 }
-            }
+            });
         }
     });
     
     console.log("Genre Filter:", genreFilter);
 
-    console.log("Filtered Data:", filteredData);
+    console.log("Dot Plot Data:", dotPlotData);
+    console.log("Streamgraph Data:", streamgraphData);
 
     updateLegend(genreFilter);
 
     let yearGroups;
 
     if (currentYAxisMode === "boxoffice") {
-        const boxOfficeData = filteredData.filter(d => d.boxOffice > 0);
+        const boxOfficeData = dotPlotData.filter(d => d.boxOffice > 0);
         yearGroups = d3.group(boxOfficeData, d => d.year);
     } else {
-        yearGroups = d3.group(filteredData, d => d.year);
+        yearGroups = d3.group(dotPlotData, d => d.year);
     }
     const years = Array.from(yearGroups.keys()).sort(d3.ascending);
 
@@ -418,7 +428,7 @@ function updateVis() {
                 });
             });
         } else if (currentYAxisMode === "boxoffice") {
-            const maxBox = d3.max(filteredData, d => d.boxOffice || 0);
+            const maxBox = d3.max(dotPlotData, d => d.boxOffice || 0);
             y = d3.scaleLinear()
                 .domain([0, maxBox])
                 .range([svgHeight - margin.top - margin.bottom, 0]);
@@ -487,7 +497,7 @@ function updateVis() {
             });
         }
     } else if (currentActiveVis === "streamgraph") {
-        drawStreamgraph(filteredData, genreFilter);
+        drawStreamgraph(streamgraphData, genreFilter);
     }
 }
 
