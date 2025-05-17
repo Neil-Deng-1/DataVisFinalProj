@@ -328,7 +328,7 @@ function updateVis() {
                                 .html(`
                                     <img src=  "https://image.tmdb.org/t/p/original/${d.poster}" height="200" alt= "movie poster"><br>
                                     <strong>${d.title}</strong><br>
-                                    Genre: ${d.genre}<br>
+                                    Genres: ${d.genres}<br>
                                     Release Date: ${d.releaseDate}<br>
                                     Rating: ${d.averageRating}<br>
                                     Worldwide Earnings: ${d.boxOffice > 0 ? `$${d.boxOffice.toLocaleString()}` : "N/A"}<br>
@@ -396,7 +396,7 @@ function updateVis() {
                                 .html(`
                                     <img src=  "https://image.tmdb.org/t/p/original/${d.poster}" height="200" alt= "movie poster"><br>
                                     <strong>${d.title}</strong><br>
-                                    Genre: ${d.genre}<br>
+                                    Genres: ${d.genres}<br>
                                     Release Date: ${d.releaseDate}<br>
                                     Rating: ${d.averageRating}<br>
                                     Worldwide Earnings: ${d.boxOffice > 0 ? `$${d.boxOffice.toLocaleString()}` : "N/A"}<br>
@@ -466,7 +466,7 @@ function updateVis() {
                                 .html(`
                                     <img src="https://image.tmdb.org/t/p/original/${d.poster}" height="200"><br>
                                     <strong>${d.title}</strong><br>
-                                    Genre: ${d.genre}<br>
+                                    Genres: ${d.genres}<br>
                                     Release Date: ${d.releaseDate}<br>
                                     Rating: ${d.averageRating}<br>
                                     Worldwide Earnings: ${d.boxOffice > 0 ? `$${d.boxOffice.toLocaleString()}` : "N/A"}<br>
