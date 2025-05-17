@@ -236,11 +236,12 @@ function updateVis() {
             (!titleFilter || (d.title && d.title.toLowerCase().includes(titleFilter)))
         ) {
             const genres = d.genres ? d.genres.split(',').map(g => g.trim()) : [];
-            genres.forEach(genre => {
+            for (const genre of genres) {
                 if (genreFilter.includes(genre)) {
-                    filteredData.push({ ...d, genre: genre });
+                    filteredData.push({ ...d, genre: genre }); 
+                    break; 
                 }
-            });
+            }
         }
     });
     
