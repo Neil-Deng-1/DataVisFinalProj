@@ -213,6 +213,60 @@ function setupSelector() {
     });
     const genres = Array.from(genreSet).sort();
 
+    //get emoji
+    function emoji(genre){
+       switch (genre) {
+        case 'Action':
+            return '128074'
+        case 'Adventure':
+            return '127957'
+        case 'Animation':
+            return '127912'
+        case 'Biography':
+            return '128218'
+        case 'Comedy':
+            return '128514'
+        case 'Crime':
+            return '128110'
+        case 'Documentary':
+            return '127909'
+        case 'Drama':
+            return '127917'
+        case 'Family':
+            return '128106'
+        case 'Fantasy':
+            return '129412'
+        case 'Film-Noir':
+            return '127747'
+        case 'History':
+            return '128511'
+        case 'Horror':
+            return '128123'
+        case 'Music':
+            return '127929'
+        case 'Musical':
+            return '127908'
+        case 'Mystery':
+            return '10067'
+        case 'News':
+            return '128240'
+        case 'Romance':
+            return '128536'
+        case 'Sci-Fi':
+            return '128640'
+        case 'Sport':
+            return '127944'
+        case 'Thriller':
+            return '128561'
+        case 'War':
+            return '128299'
+        case 'Western':
+            return '129312'
+        default:
+            return '127957'        
+       }
+    }
+
     // Replace dropdown with checkbox container
     const checkboxContainer = d3.select("#genreCheckboxes");
 
@@ -221,7 +275,7 @@ function setupSelector() {
         .enter()
         .append("label")
         .style("display", "block")
-        .html(genre => `<input type="checkbox" value="${genre}" class="genre-checkbox"> ${genre}`);
+        .html(genre => `<input type="checkbox" value="${genre}" class="genre-checkbox"> ${genre} &#${emoji(genre)};`);
 
     d3.select("#selectAllGenresBtn").on("click", () => {
         genreFilter = [];
@@ -279,13 +333,6 @@ function updateVis() {
             });
         }
     });
-    
-    console.log("Genre Filter:", genreFilter);
-
-    console.log("Dot Plot Data:", dotPlotData);
-    console.log("Streamgraph Data:", streamgraphData);
-
-    updateLegend(genreFilter);
 
     let yearGroups;
 
@@ -296,6 +343,152 @@ function updateVis() {
         yearGroups = d3.group(dotPlotData, d => d.year);
     }
     const years = Array.from(yearGroups.keys()).sort(d3.ascending);
+
+    //start stats table code
+
+    //helper functions for stats
+    function findMean(arr){
+        return arr.reduce((a, b) => a + b) / arr.length
+    }
+    function standardDeviation(arr, usePopulation = false) {
+        if (!Array.isArray(arr) || arr.length === 0) {
+            return 0;
+        }
+        const n = arr.length;
+        const mean = arr.reduce((a, b) => a + b) / n;
+        const variance = arr.map(x => Math.pow(x - mean, 2)).reduce((a, b) => a + b) / (n - (usePopulation ? 0 : 1));
+        return Math.sqrt(variance);
+    }
+    function findMedian(arr) {
+        const sortedArr = [...arr].sort((a, b) => a - b);
+        const arrLength = sortedArr.length;
+        const middleIndex = Math.floor(arrLength / 2);
+
+        if (arrLength % 2 === 0) {
+            return (sortedArr[middleIndex - 1] + sortedArr[middleIndex]) / 2;
+        } else {
+            return sortedArr[middleIndex];
+        }
+    }
+    function countNullElements(arr) {
+  let count = 0;
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i] === null) {
+      count++;
+    }
+  }
+  return count;
+    }
+    function countZeros(arr) {
+        let count = 0;
+        for (let i = 0; i < arr.length; i++) {
+            if (arr[i] === 0) {
+            count++;
+            }
+        }
+        return count;
+    }
+    function numberWithCommas(x) {
+        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+    
+    //ratings stats
+    onlyRatings = dotPlotData.map(x => x.averageRating)
+    meanRating = findMean(onlyRatings).toFixed(2)
+    stdDevRating = standardDeviation(onlyRatings).toFixed(2)    
+    medianRating = findMedian(onlyRatings).toFixed(2)
+    minRating = Math.min(...onlyRatings)
+    maxRating = Math.max(...onlyRatings)
+
+    //boxOffice stats
+    onlyBoxOffice = dotPlotData.map(x => x.boxOffice).filter(x => x > 0)    
+    meanBoxOffice = findMean(onlyBoxOffice).toFixed(0)
+    stdDevBoxOffice = standardDeviation(onlyBoxOffice).toFixed(0)    
+    medianBoxOffice = findMedian(onlyBoxOffice).toFixed(0)
+    minBoxOffice = Math.min(...onlyBoxOffice)
+    maxBoxOffice = Math.max(...onlyBoxOffice)
+    totalBoxOffice = onlyBoxOffice.reduce((sum, num) => sum + num, 0);
+
+    //countPerYear
+    numMoviesPerYear = years.map(y =>  yearGroups.get(y).length)    
+    meanCountPerYear = findMean(numMoviesPerYear).toFixed(2)
+    stdDevCountPerYear = standardDeviation(numMoviesPerYear).toFixed(2)
+    medianCountPerYear = findMedian(numMoviesPerYear)
+    minCountPerYear = Math.min(...numMoviesPerYear)
+    maxCountPerYear = Math.max(...numMoviesPerYear)    
+    countMovies = dotPlotData.length;
+    
+    //create table
+    table = 
+        `    
+            <table>
+                <tr>
+                    <th><b>Statistic</b></th>
+                    <th><b>Rating</b></th>
+                    <th><b>Worldwide Earnings</b></th>
+                    <th><b>Count per Year</b></th>
+                </tr>
+                <tr>
+                    <td><b>Mean</b></td>
+                    <td>${meanRating}</td>
+                    <td>$${numberWithCommas(meanBoxOffice)}</td>
+                    <td>${meanCountPerYear}</td>
+                </tr>                
+                <tr>
+                    <td><b>Std Dev</b></td>
+                    <td>${stdDevRating}</td>
+                    <td>$${numberWithCommas(stdDevBoxOffice)}</td>
+                    <td>${stdDevCountPerYear}</td>
+                </tr>
+                <tr>
+                    <td><b>Median</b></td>
+                    <td>${medianRating}</td>
+                    <td>$${numberWithCommas(medianBoxOffice)}</td>
+                    <td>${medianCountPerYear}</td>
+                </tr>
+                <tr>
+                    <td><b>Min</b></td>
+                    <td>${minRating}</td>
+                    <td>$${numberWithCommas(minBoxOffice)}</td>
+                    <td>${minCountPerYear}</td>
+                </tr>
+                <tr>
+                    <td><b>Max</b></td>
+                    <td>${maxRating}</td>
+                    <td>$${numberWithCommas(maxBoxOffice)}</td>
+                    <td>${maxCountPerYear}</td>
+                </tr>
+                <tr>
+                    <td><b>Total</b></td>
+                    <td>N/A</td>
+                    <td>$${numberWithCommas(totalBoxOffice)}</td>
+                    <td>${countMovies}</td>
+                </tr>
+            </table>
+        `
+    //append table
+    document.getElementById("stats").innerHTML= table
+    d3.selectAll("#invisible-centering-thing").style("width","400px")
+
+    //end stats table code
+
+
+    
+    function determinePointSizeByYAxis(maxCount){
+        if(maxCount < 10){
+            return 15
+        }
+        if(maxCount < 20){
+            return 10
+        }
+        return ((svgHeight/2)-100)/maxCount
+    }
+
+    console.log("Genre Filter:", genreFilter);
+    console.log("Dot Plot Data:", dotPlotData);
+    console.log("Streamgraph Data:", streamgraphData);
+
+    updateLegend(genreFilter);
 
     g.selectAll("*:not(#y-axis-label)").remove(); // Keep y-axis label
 
@@ -313,79 +506,87 @@ function updateVis() {
             .style("text-anchor", "end");
 
         let y;
+        const t = 1000;
+        const maxCount = d3.max(years, year => yearGroups.get(year).length);
+        if (currentYAxisMode === "count") {     
+            biggestSizeByXAxis = (1/(yearRange[1]-yearRange[0]+1))*(width-200)
+            biggestSizeByYAxis = Math.max(3,determinePointSizeByYAxis(maxCount))
+            pointSize = Math.min(biggestSizeByYAxis,biggestSizeByXAxis);
 
-        if (currentYAxisMode === "count") {
-            const maxCount = d3.max(years, year => yearGroups.get(year).length);
             y = d3.scaleLinear()
                 .domain([0, maxCount])
                 .range([svgHeight - margin.top - margin.bottom, 0]);
 
-            g.append("g").call(d3.axisLeft(y));
-            d3.select("#y-axis-label").text("Movie Count");
-            g.append("text")
-            .attr("class", "x-axis-label")
-            .attr("x", width / 2 - 40)
-            .attr("y", svgHeight - 40)
-            .style("text-anchor", "middle")
-            .style("font-size", "14px")
-            .text("Year");
+                g.append("g").call(d3.axisLeft(y));
+                d3.select("#y-axis-label").text("Movie Count");
+                g.append("text")
+                .attr("class", "x-axis-label")
+                .attr("x", width / 2 - 40)
+                .attr("y", svgHeight - 40)
+                .style("text-anchor", "middle")
+                .style("font-size", "14px")
+                .text("Year");
 
-            years.forEach(year => {
-                const movies = yearGroups.get(year).slice().sort((a, b) =>
-                    a.title.localeCompare(b.title)
-                );
-                movies.forEach((d, i) => {
-                    g.append("circle")
-                        .attr("cx", x(year) + x.bandwidth() / 2)
-                        .attr("cy", y(i + 1))
-                        .attr("r", 3)
-                        .attr("fill", genreColor(d.genre))
-                        .on('mouseover', function(event) {
-                            d3.select(this)
-                                .transition()
-                                .duration(100)
-                                .attr("r", 6)
-                                .attr("stroke", "black")
-                                .attr("stroke-width", 1);
-            
-                            tooltip
-                                .style("display", 'block')
-                                .style("visibility", "visible")
-                                .html(`
-                                    <img src=  "https://image.tmdb.org/t/p/original/${d.poster}" height="200" alt= "movie poster"><br>
-                                    <strong>${d.title}</strong><br>
-                                    Genres: ${d.genres}<br>
-                                    Release Date: ${d.releaseDate}<br>
-                                    Rating: ${d.averageRating}<br>
-                                    Worldwide Earnings: ${d.boxOffice > 0 ? `$${d.boxOffice.toLocaleString()}` : "N/A"}<br>
-                                    Director: ${d.director}<br><br>
-                                    <em>click to go visit imdb page <br>in a new tab</em><br>
-                                `)
-                                .style("left", () => {
-                                    const tooltipWidth = 200;
-                                    return Math.min(event.pageX + 20, window.innerWidth - tooltipWidth - 20) + "px";
-                                })
-                                .style("top", () => {
-                                    const tooltipHeight = 150;
-                                    return Math.max(20, event.pageY - tooltipHeight) + "px";
-                                });
-                        })
-                        .on("mouseout", function() {
-                            d3.select(this)
-                                .transition()
-                                .duration(100)
-                                .attr("r", 3)
-                                .attr("stroke", "none");
-            
-                            tooltip.style("display", "none");
-                        }).on("click", () => {
-                            link  = `https://www.imdb.com/title/${d.id}/`
-                            window.open(link, '_blank')
-                        });
+                years.forEach(year => {
+                    const movies = yearGroups.get(year).slice().sort((a, b) =>
+                        a.title.localeCompare(b.title)
+                    );
+                    movies.forEach((d, i) => {
+                        g.append("circle")
+                            .attr("cx", x(year) + x.bandwidth() / 2)
+                            .attr("cy", y(i + 1))
+                            //.attr("r", 3)
+                            .attr("r", pointSize)
+                            .attr("fill", genreColor(d.genre))
+                            .on('mouseover', function(event) {
+                                d3.select(this)
+                                    .transition()
+                                    .duration(100)
+                                    //.attr("r", 6)
+                                    .attr("r", Math.max(6,pointSize*1.5))
+                                    .attr("stroke", "black")
+                                    .attr("stroke-width", 1);
+                
+                                tooltip
+                                    .style("display", 'block')
+                                    .style("visibility", "visible")
+                                    .html(`
+                                        <img src=  "https://image.tmdb.org/t/p/original/${d.poster}" height="300" alt= "movie poster"><br>
+                                        <strong>${d.title}</strong><br>
+                                        Genres: ${d.genres}<br>
+                                        Release Date: ${d.releaseDate}<br>
+                                        Rating: ${d.averageRating}<br>
+                                        Worldwide Earnings: ${d.boxOffice > 0 ? `$${d.boxOffice.toLocaleString()}` : "N/A"}<br>
+                                        Director: ${d.director}<br><br>
+                                        <em>click to go visit imdb page <br>in a new tab</em><br>
+                                    `)
+                                    .style("left", () => {
+                                        const tooltipWidth = 200;
+                                        return Math.min(event.pageX + 20, window.innerWidth - tooltipWidth - 20) + "px";
+                                    })
+                                    .style("top", () => {
+                                        const tooltipHeight = 150;
+                                        return Math.max(20, event.pageY - tooltipHeight) + "px";
+                                    });
+                            })
+                            .on("mouseout", function() {
+                                d3.select(this)
+                                    .transition()
+                                    .duration(100)
+                                    .attr("r", pointSize)
+                                    .attr("stroke", "none");
+                
+                                tooltip.style("display", "none");
+                            }).on("click", () => {
+                                link  = `https://www.imdb.com/title/${d.id}/`
+                                window.open(link, '_blank')
+                            });
+                    });
                 });
-            });
-            
-        } else if (currentYAxisMode === "rating") {
+                
+        } 
+
+        else if (currentYAxisMode === "rating") {
             y = d3.scaleLinear()
                 .domain([0, 10])
                 .range([svgHeight - margin.top - margin.bottom, 0]);
@@ -420,7 +621,7 @@ function updateVis() {
                                 .style("display", 'block')
                                 .style("visibility", "visible")
                                 .html(`
-                                    <img src=  "https://image.tmdb.org/t/p/original/${d.poster}" height="200" alt= "movie poster"><br>
+                                    <img src=  "https://image.tmdb.org/t/p/original/${d.poster}" height="300" alt= "movie poster"><br>
                                     <strong>${d.title}</strong><br>
                                     Genres: ${d.genres}<br>
                                     Release Date: ${d.releaseDate}<br>
@@ -453,7 +654,9 @@ function updateVis() {
                         });
                 });
             });
-        } else if (currentYAxisMode === "boxoffice") {
+        } 
+
+        else if (currentYAxisMode === "boxoffice") {
             const maxBox = d3.max(dotPlotData, d => d.boxOffice || 0);
             y = d3.scaleLinear()
                 .domain([0, maxBox])
@@ -522,7 +725,8 @@ function updateVis() {
                 });
             });
         }
-    } else if (currentActiveVis === "streamgraph") {
+    } 
+    else if (currentActiveVis === "streamgraph") {
         drawStreamgraph(streamgraphData, genreFilter);
     }
 }
