@@ -15,7 +15,33 @@ let genreFilter = [];
 let currentYAxisMode = "count"; // "count", "rating", "boxoffice"
 let currentActiveVis = "dotPlot";
 
-const genreColor = d3.scaleOrdinal(d3.schemeCategory10);
+const legend_colors = [
+    "#dc143c", //crimson - 1
+    "#008000", //green - 2
+    "#7f007f", //purple - 3
+    "#ce0cff", //grape purple - 4
+    "#ccd72e", //beige yellow - 5
+    "#5f9ea0", //cadet blue - 6
+    "#ffa500", //orange - 7
+    "#556b2f", //dark olive green - 8
+    "#8b4513", //brown - 9
+    "#26b999", //dark lime - 10 
+    "#d8bfd8", //thistle - 11
+    "#6495ed", //cornflower - 12
+    "#ffdd00", //yellow - 13 (change)
+    "#9acd32", //yellow green - 14
+    "#db7093", //plae violet red - 15
+    "#7b68ee", //medium slate blue - 16
+    "#ff1493", //deep pink - 17
+    "#00fa9a", //medium spring green - 18
+    "#ee82ee", //violet - 19
+    "#00ffff", //aqua - 20
+    "#ff00ff", //fuchsia - 21
+    "#0000ff", //blue - 22
+    "#5e5e5e", //gray - 23 
+];
+
+const genreColor = d3.scaleOrdinal(legend_colors);
 
 // Dotplot SVG setup
 const svg = d3.select("#vis")
@@ -569,8 +595,6 @@ function drawStreamgraph(sourceData, streamKeys) {
         .style("font-size", "14px")
         .text("Year");
 
-    const colorStream = d3.scaleOrdinal(d3.schemeCategory10).domain(streamKeys);
-
     const stack = d3.stack()
         .keys(streamKeys)
         .offset(d3.stackOffsetWiggle)
@@ -595,7 +619,7 @@ function drawStreamgraph(sourceData, streamKeys) {
         .data(series)
         .join("path")
         .attr("class", "stream-layer")
-        .style("fill", d => colorStream(d.key))
+        .style("fill", d => genreColor(d.key))
         .attr("d", areaStream)
         .on('mouseover', function(event, d_layer) {
             tooltip.style("visibility", "visible").style("display", "block");
@@ -615,15 +639,6 @@ function drawStreamgraph(sourceData, streamKeys) {
             tooltip.style("visibility", "hidden").style("display", "none");
             streamgraphG.selectAll(".stream-layer").style("opacity", 1).style("stroke", "none");
         });
-
-    const legend = streamgraphG.append("g")
-        .attr("class", "streamgraph-legend")
-        .attr("transform", `translate(${width + 15}, 0)`);
-    streamKeys.forEach((key, i) => {
-        const legendItem = legend.append("g").attr("class", "streamgraph-legend-item").attr("transform", `translate(0, ${i * 20})`);
-        legendItem.append("rect").attr("x", 0).attr("y", -5).attr("width", 10).attr("height", 10).style("fill", colorStream(key));
-        legendItem.append("text").attr("x", 15).attr("y", 0).text(key);
-    });
     
 }
 
