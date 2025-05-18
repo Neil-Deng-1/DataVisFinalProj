@@ -1,76 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Movie Visualization Hub</title> 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <head>
+        <meta charset="UTF-8">
+        <title>Movie Visualization Hub</title> 
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://d3js.org/d3.v7.min.js"></script>
+        <script src="https://unpkg.com/d3-simple-slider"></script>
+        <link rel="stylesheet" href="css/styles.css">
+    </head>
+    <body>
 
-    <script src="https://d3js.org/d3.v7.min.js"></script>
-    <script src="https://unpkg.com/d3-simple-slider"></script>
+        <h1>Movie Visualization Hub</h1> 
 
-    <link rel="stylesheet" href="css/styles.css">
-</head>
-<body>
+        <div class="center-wrapper">
+            <div id="controls" class="card">
+                <div class="form-group">
+                    <label for="directorSearch">Director Name</label>
+                    <input type="text" id="directorSearch" placeholder="e.g. Nolan" />
+                    
+                    <label for="titleSearch">Movie Title</label>
+                    <input type="text" id="titleSearch" placeholder="e.g. Inception" />
 
-    <h1>Movie Visualization Hub</h1> 
-
-    <div id="tabs-container">
-        <button id="tab-dotplot" class="tab-button active">Dot Plot</button>
-        <button id="tab-streamgraph" class="tab-button">Streamgraph</button>
-    </div>
-
-    <div id="controls" style="display: flex; flex-wrap: wrap; gap: 20px; align-items: center;">
-        <div>
-            <label>
-                Director Name:<br>
-                <input type="text" id="directorSearch" placeholder="e.g. Nolan">
-            </label>
-            <label>
-                Movie Title:<br>
-                <input type="text" id="titleSearch" placeholder="e.g. Inception">
-            </label>
-        </div>
-
-        <div id="y-axis-control-wrapper">
-            <label>
-                Y-Axis:<br>
-                <select id="y-axis-select">
-                    <option value="count">Count</option>
-                    <option value="rating">Rating</option>
-                    <option value="boxoffice">Box Office</option>
-                </select>
-            </label>
-        </div>
-
-
-        <div>
-            <label>
-                Genre:<br>
-                <button id="selectAllGenresBtn" style="margin-bottom: 6px; margin-right: 6px;">Select All</button>
-                <button id="clearGenresBtn" style="margin-bottom: 6px;">Clear All</button>
-                <div id="genreCheckboxes" style="max-height: 150px; overflow-y: auto;">
+                    <label for="y-axis-select">Y-Axis</label>
+                    <select id="y-axis-select">
+                        <option value="count">Count</option>
+                        <option value="rating">Rating</option>
+                        <option value="boxoffice">Box Office</option>
+                    </select>
                 </div>
-            </label>
+
+                <div class="form-group">
+                    <label>Genre</label>
+                    <div id="genreCheckboxes" class="genre-checkboxes"></div>
+                        <div class="genre-buttons">
+                        <button id="selectAllGenresBtn">Select All</button>
+                        <button id="clearGenresBtn">Clear All</button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Graph</label>
+                    <button id="tab-dotplot" class="tab-button active">Dot Plot</button>
+                    <button id="tab-streamgraph" class="tab-button">Streamgraph</button>
+                </div>
+
+                <div class="form-group">
+                    <label>Year Range</label>
+                    <div id="yearSlider" class="slider-track"></div>
+
+                    <label>Rating Range</label>
+                    <div id="ratingSlider" class="slider-track"></div>
+                </div>
+
+            </div>
         </div>
-    </div>
 
-    <div class="slider-group" style="margin-bottom: 20px;">
-        <label>Year Range:</label>
-        <div id="yearSlider"></div>
-    </div>
+        <div id="vis" class="vis-box"></div>
+        <div id="streamgraph-vis-container" class="vis-box hidden"></div>
+        <div id="legend"></div>
+        <div id="tooltip" class="tooltip"></div>
 
-    <div class="slider-group" style="margin-bottom: 20px;">
-        <label>Rating Range:</label>
-        <div id="ratingSlider"></div>
-    </div>
-
-    <div id="vis"></div>
-
-    <div id="streamgraph-vis-container" class="hidden">
-    </div>
-
-    <div id="tooltip" class="tooltip"></div>
-
-    <script src="js/script.js"></script>
-</body>
+        <script src="js/script.js"></script>
+    </body>
 </html>

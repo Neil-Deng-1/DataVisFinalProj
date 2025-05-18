@@ -1,25 +1,53 @@
 console.log('D3 Version:', d3.version);
 
-const margin = { top: 30, right: 30, bottom: 60, left: 80 };
+const margin = { top: 30, right: 80, bottom: 60, left: 80 };
 const width = window.innerWidth - margin.left - margin.right;
 const svgHeight = 600;
 
 let allData = [];
-let filteredData = [];
+let dotPlotData = [];
+let streamgraphData = [];
 let yearRange = [0, 0];
 let ratingRange = [0, 10];
 let directorFilter = "";
 let titleFilter = "";
 let genreFilter = [];
-let currentYAxisMode = "count"; // "count" or "rating"
-
+let currentYAxisMode = "count"; // "count", "rating", "boxoffice"
 let currentActiveVis = "dotPlot";
 
+const legend_colors = [
+    "#dc143c", //crimson - 1
+    "#008000", //green - 2
+    "#7f007f", //purple - 3
+    "#ce0cff", //grape purple - 4
+    "#ccd72e", //beige yellow - 5
+    "#5f9ea0", //cadet blue - 6
+    "#ffa500", //orange - 7
+    "#556b2f", //dark olive green - 8
+    "#8b4513", //brown - 9
+    "#26b999", //dark lime - 10 
+    "#d8bfd8", //thistle - 11
+    "#6495ed", //cornflower - 12
+    "#ffdd00", //yellow - 13 
+    "#9acd32", //yellow green - 14
+    "#db7093", //pale violet red - 15
+    "#7b68ee", //medium slate blue - 16
+    "#ff1493", //deep pink - 17
+    "#00fa9a", //medium spring green - 18
+    "#ee82ee", //violet - 19
+    "#00ffff", //aqua - 20
+    "#ff00ff", //fuchsia - 21
+    "#0000ff", //blue - 22
+    "#5e5e5e", //gray - 23 
+];
+
+const genreColor = d3.scaleOrdinal(legend_colors);
+
+// Dotplot SVG setup
 const svg = d3.select("#vis")
     .append("svg")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", svgHeight)
-    .attr("preserveAspectRatio", "xMidYMid meet");
+    .attr("width", width)
+    .attr("height", svgHeight);
 
 const g = svg.append("g")
     .attr("transform", `translate(${margin.left},${margin.top})`);
@@ -34,21 +62,17 @@ g.append("text")
     .style("font-size", "14px")
     .text("Y Axis");
 
-const tooltip = d3.select("#tooltip");
-
-const streamgraph_margin = { top: 20, right: 120, bottom: 50, left: 50 };
-const streamgraph_content_width = width;
-const streamgraph_chart_width = streamgraph_content_width - streamgraph_margin.left - streamgraph_margin.right;
-const streamgraph_chart_height = 450;
-
-const streamgraphSvgContainer = d3.select("#streamgraph-vis-container")
+// Streamgraph SVG setup
+const streamgraphSvg = d3.select("#streamgraph-vis-container")
     .append("svg")
     .attr("id", "streamgraph-svg-element")
-    .attr("width", streamgraph_content_width + streamgraph_margin.left + streamgraph_margin.right)
-    .attr("height", streamgraph_chart_height + streamgraph_margin.top + streamgraph_margin.bottom);
+    .attr("width", width)
+    .attr("height", svgHeight);
 
-const streamgraphG = streamgraphSvgContainer.append("g")
-    .attr("transform", `translate(${streamgraph_margin.left},${streamgraph_margin.top})`);
+const streamgraphG = streamgraphSvg.append("g")
+    .attr("transform", `translate(${margin.left},${margin.top})`);    
+
+const tooltip = d3.select("#tooltip");
 
 function init() {
     d3.select("#tab-dotplot").on("click", function() {
@@ -56,7 +80,6 @@ function init() {
         currentActiveVis = "dotPlot";
         d3.selectAll(".tab-button").classed("active", false);
         d3.select(this).classed("active", true);
-
         d3.select("#vis").classed("hidden", false);
         d3.select("#streamgraph-vis-container").classed("hidden", true);
         d3.select("#y-axis-control-wrapper").classed("hidden", false);
@@ -68,7 +91,6 @@ function init() {
         currentActiveVis = "streamgraph";
         d3.selectAll(".tab-button").classed("active", false);
         d3.select(this).classed("active", true);
-
         d3.select("#vis").classed("hidden", true);
         d3.select("#streamgraph-vis-container").classed("hidden", false);
         d3.select("#y-axis-control-wrapper").classed("hidden", true);
@@ -97,17 +119,41 @@ function init() {
     .catch(error => console.error("Data load error:", error));
 }
 
+/* Change the legend colors */
+function updateLegend(selectedGenres) {
+    const legendContainer = d3.select("#legend");
+    legendContainer.selectAll("*").remove(); 
+
+    selectedGenres.forEach(genre => {
+        const legendItem = legendContainer.append("div")
+            .attr("class", "legend-item")
+            .style("display", "flex")
+            .style("align-items", "center")
+            .style("margin", "4px 0");
+
+        legendItem.append("span")
+            .style("width", "15px")
+            .style("height", "15px")
+            .style("background-color", genreColor(genre))
+            .style("display", "inline-block")
+            .style("margin-right", "8px");
+
+        legendItem.append("span").text(genre);
+    });
+}
+
 function setupSelector() {
     const minYear = d3.min(allData, d => d.year);
     const maxYear = d3.max(allData, d => d.year);
     yearRange = [minYear, maxYear];
+    const sliderWidth = Math.min(960, width-45);
 
     const yearSlider = d3.sliderHorizontal()
         .min(minYear)
         .max(maxYear)
         .step(1)
         .displayValue(true)
-        .width(width - 60)
+        .width(sliderWidth)
         .default([minYear, maxYear])
         .tickFormat(d3.format("d"))
         .on('onchange', val => {
@@ -128,7 +174,7 @@ function setupSelector() {
         .max(10)
         .step(0.1)
         .displayValue(true)
-        .width(width - 60)
+        .width(sliderWidth)
         .default([0, 10])
         .on('onchange', val => {
             ratingRange = val;
@@ -143,16 +189,21 @@ function setupSelector() {
         .attr("transform", "translate(30,20)")
         .call(ratingSlider);
 
-    d3.select("#directorSearch")
-        .on("input", () => {
-            directorFilter = d3.select("#directorSearch").property("value").toLowerCase();
-            updateVis();
-        });
-    d3.select("#titleSearch")
-        .on("input", () => {
-            titleFilter = d3.select("#titleSearch").property("value").toLowerCase();
-            updateVis();
-        });
+
+    d3.select("#directorSearch").on("input", () => {
+        directorFilter = d3.select("#directorSearch").property("value").toLowerCase();
+        updateVis();
+    });
+
+    d3.select("#titleSearch").on("input", () => {
+        titleFilter = d3.select("#titleSearch").property("value").toLowerCase();
+        updateVis();
+    });
+
+    d3.select("#y-axis-select").on("change", function () {
+        currentYAxisMode = this.value;
+        updateVis();
+    });
 
     const genreSet = new Set();
     allData.forEach(d => {
@@ -162,59 +213,88 @@ function setupSelector() {
     });
     const genres = Array.from(genreSet).sort();
 
-   // Replace dropdown with checkbox container
+    // Replace dropdown with checkbox container
     const checkboxContainer = d3.select("#genreCheckboxes");
-
 
     checkboxContainer.selectAll("label")
         .data(genres)
         .enter()
         .append("label")
         .style("display", "block")
-        .html(genre => `
-            <input type="checkbox" value="${genre}" class="genre-checkbox"> ${genre}
-        `);
+        .html(genre => `<input type="checkbox" value="${genre}" class="genre-checkbox"> ${genre}`);
+
     d3.select("#selectAllGenresBtn").on("click", () => {
         genreFilter = [];
         d3.selectAll(".genre-checkbox").property("checked", true);
         d3.selectAll(".genre-checkbox").each(function () {
             genreFilter.push(this.value);
         });
+        updateLegend(genreFilter);
         updateVis();
     });
+
     d3.select("#clearGenresBtn").on("click", () => {
         d3.selectAll(".genre-checkbox").property("checked", false);
         genreFilter = [];
+        updateLegend(genreFilter);
         updateVis();
     });
+
     // Event listener for checkboxes
     d3.selectAll(".genre-checkbox").on("change", () => {
         genreFilter = [];
         d3.selectAll(".genre-checkbox:checked").each(function() {
             genreFilter.push(this.value);
         });
-        updateVis();
-    });
-
-    d3.select("#y-axis-select").on("change", function () {
-        currentYAxisMode = this.value;
+        updateLegend(genreFilter);
         updateVis();
     });
 }
 
 function updateVis() {
+    dotPlotData = [];
+    streamgraphData = [];
+    allData.forEach(d => {
+        if (
+            d.year >= yearRange[0] &&
+            d.year <= yearRange[1] &&
+            d.averageRating >= ratingRange[0] &&
+            d.averageRating <= ratingRange[1] &&
+            (!directorFilter || (d.director && d.director.toLowerCase().includes(directorFilter))) &&
+            (!titleFilter || (d.title && d.title.toLowerCase().includes(titleFilter)))
+        ) {
+            const genres = d.genres ? d.genres.split(',').map(g => g.trim()) : [];
+            let addedToDotPlot = false;
+            genres.forEach(genre => {
+                if (genreFilter.includes(genre)) {
+                    // For streamgraph: always push duplicate genres
+                    streamgraphData.push({ ...d, genre });
 
-    filteredData = allData.filter(d =>
-        d.year >= yearRange[0] &&
-        d.year <= yearRange[1] &&
-        d.averageRating >= ratingRange[0] &&
-        d.averageRating <= ratingRange[1] &&
-        genreFilter.some(g => d.genres.split(',').map(x => x.trim()).includes(g)) &&
-        (!directorFilter || (d.director && d.director.toLowerCase().includes(directorFilter))) &&
-        (!titleFilter || (d.title && d.title.toLowerCase().includes(titleFilter)))
-    );
+                    // For dot plot: push only the first matching genre
+                    if (!addedToDotPlot) {
+                        dotPlotData.push({ ...d, genre });
+                        addedToDotPlot = true;
+                    }
+                }
+            });
+        }
+    });
+    
+    console.log("Genre Filter:", genreFilter);
 
-    const yearGroups = d3.group(filteredData, d => d.year);
+    console.log("Dot Plot Data:", dotPlotData);
+    console.log("Streamgraph Data:", streamgraphData);
+
+    updateLegend(genreFilter);
+
+    let yearGroups;
+
+    if (currentYAxisMode === "boxoffice") {
+        const boxOfficeData = dotPlotData.filter(d => d.boxOffice > 0);
+        yearGroups = d3.group(boxOfficeData, d => d.year);
+    } else {
+        yearGroups = d3.group(dotPlotData, d => d.year);
+    }
     const years = Array.from(yearGroups.keys()).sort(d3.ascending);
 
     g.selectAll("*:not(#y-axis-label)").remove(); // Keep y-axis label
@@ -222,7 +302,7 @@ function updateVis() {
     if (currentActiveVis === "dotPlot") {
         const x = d3.scaleBand()
             .domain(years)
-            .range([0, width])
+            .range([0, width - 100])
             .padding(0.2);
 
         g.append("g")
@@ -253,100 +333,129 @@ function updateVis() {
 
             g.append("g").call(d3.axisLeft(y));
             d3.select("#y-axis-label").text("Movie Count");
+            g.append("text")
+            .attr("class", "x-axis-label")
+            .attr("x", width / 2 - 40)
+            .attr("y", svgHeight - 40)
+            .style("text-anchor", "middle")
+            .style("font-size", "14px")
+            .text("Year");
 
-        years.forEach(year => {
-            const movies = yearGroups.get(year).slice().sort((a, b) =>
-                a.title.localeCompare(b.title)
-            );
-            movies.forEach((d, i) => {
-                g.append("circle")
-                    .attr("cx", x(year) + x.bandwidth() / 2)
-                    .attr("cy", y(i + 1))
-                    .attr("r", pointSize)
-                    .attr("fill", "steelblue")
-                    .on('mouseover', function(event) {
-                        d3.select(this)
-                            .transition()
-                            .duration(100)
-                            .attr("r", pointSize*1.5)
-                            .attr("stroke", "black")
-                            .attr("stroke-width", 1);
-        
-                        tooltip
-                            .style("display", 'block')
-                            .style("visibility", "visible")
-                            .html(`
-                                <img src=  "https://image.tmdb.org/t/p/original/${d.poster}" height="200" alt= "movie poster"><br>
-                                <strong>${d.title}</strong><br>
-                                Release Date: ${d.releaseDate}<br>
-                                Rating: ${d.averageRating}<br>
-                                Worldwide Earnings: $${d.boxOffice.toLocaleString()}<br>
-                                Director: ${d.director}<br><br>
-                                <em>click to go visit imdb page <br>in a new tab</em><br>
-                            `)
-                            .style("left", (event.pageX + 20) + "px")
-                            .style("top", (event.pageY - 28) + "px")
-                    })
-                    .on("mouseout", function() {
-                        d3.select(this)
-                            .transition()
-                            .duration(100)
-                            .attr("r", pointSize)
-                            .attr("stroke", "none");
-        
-                        tooltip.style("display", "none");
-                    }).on("click", () => {
-                        link  = `https://www.imdb.com/title/${d.id}/`
-                        window.open(link, '_blank')
-                    })
+            years.forEach(year => {
+                const movies = yearGroups.get(year).slice().sort((a, b) =>
+                    a.title.localeCompare(b.title)
+                );
+                movies.forEach((d, i) => {
+                    g.append("circle")
+                        .attr("cx", x(year) + x.bandwidth() / 2)
+                        .attr("cy", y(i + 1))
+                        .attr("r", 3)
+                        .attr("fill", genreColor(d.genre))
+                        .on('mouseover', function(event) {
+                            d3.select(this)
+                                .transition()
+                                .duration(100)
+                                .attr("r", 6)
+                                .attr("stroke", "black")
+                                .attr("stroke-width", 1);
+            
+                            tooltip
+                                .style("display", 'block')
+                                .style("visibility", "visible")
+                                .html(`
+                                    <img src=  "https://image.tmdb.org/t/p/original/${d.poster}" height="200" alt= "movie poster"><br>
+                                    <strong>${d.title}</strong><br>
+                                    Genres: ${d.genres}<br>
+                                    Release Date: ${d.releaseDate}<br>
+                                    Rating: ${d.averageRating}<br>
+                                    Worldwide Earnings: ${d.boxOffice > 0 ? `$${d.boxOffice.toLocaleString()}` : "N/A"}<br>
+                                    Director: ${d.director}<br><br>
+                                    <em>click to go visit imdb page <br>in a new tab</em><br>
+                                `)
+                                .style("left", () => {
+                                    const tooltipWidth = 200;
+                                    return Math.min(event.pageX + 20, window.innerWidth - tooltipWidth - 20) + "px";
+                                })
+                                .style("top", () => {
+                                    const tooltipHeight = 150;
+                                    return Math.max(20, event.pageY - tooltipHeight) + "px";
+                                });
+                        })
+                        .on("mouseout", function() {
+                            d3.select(this)
+                                .transition()
+                                .duration(100)
+                                .attr("r", 3)
+                                .attr("stroke", "none");
+            
+                            tooltip.style("display", "none");
+                        }).on("click", () => {
+                            link  = `https://www.imdb.com/title/${d.id}/`
+                            window.open(link, '_blank')
+                        });
+                });
             });
-        });
-        
-    } else if (currentYAxisMode === "rating") {
-        y = d3.scaleLinear()
-            .domain([0, 10])
-            .range([svgHeight - margin.top - margin.bottom, 0]);
+            
+        } else if (currentYAxisMode === "rating") {
+            y = d3.scaleLinear()
+                .domain([0, 10])
+                .range([svgHeight - margin.top - margin.bottom, 0]);
 
-        g.append("g").call(d3.axisLeft(y));
-        d3.select("#y-axis-label").text("Rating");
-        pointSize = determinePointSize(maxCount);
-        years.forEach(year => {
-            const movies = yearGroups.get(year);
-            movies.forEach(d => {
-                g.append("circle")
-                    .attr("cx", x(year) + x.bandwidth() / 2)
-                    .attr("cy", y(d.averageRating))
-                    .attr("r", determinePointSize(maxCount))
-                    .attr("fill", "darkorange")
-                    .on('mouseover', function(event) {
-                        d3.select(this)
-                            .transition()
-                            .duration(100)
-                            .attr("r", pointSize*1.5)
-                            .attr("stroke", "black")
-                            .attr("stroke-width", 1);
+            g.append("g").call(d3.axisLeft(y));
+            d3.select("#y-axis-label").text("Rating");
+            g.append("text")
+            .attr("class", "x-axis-label")
+            .attr("x", width / 2 - 40)
+            .attr("y", svgHeight - 40)
+            .style("text-anchor", "middle")
+            .style("font-size", "14px")
+            .text("Year");
 
-                        tooltip
-                            .style("display", 'block')
-                            .style("visibility", "visible")
-                            .html(`
-                                <img src=  "https://image.tmdb.org/t/p/original/${d.poster}" height="200" alt= "movie poster"><br>
-                                <strong>${d.title}</strong><br>
-                                Release Date: ${d.releaseDate}<br>
-                                Rating: ${d.averageRating}<br>
-                                Worldwide Earnings: $${d.boxOffice.toLocaleString()}<br>
-                                Director: ${d.director}<br><br>
-                                <em>click to go visit imdb page <br>in a new tab</em><br>
-                            `)
-                            .style("left", (event.pageX + 20) + "px")
-                            .style("top", (event.pageY - 28) + "px");
-                    })
-                    .on("mouseout", function() {
-                        d3.select(this)
-                            .transition()
-                            .duration(100)
-                            .attr("r", pointSize )
-                            .attr("stroke", "none");
+            years.forEach(year => {
+                const movies = yearGroups.get(year);
+                movies.forEach(d => {
+                    g.append("circle")
+                        .attr("cx", x(year) + x.bandwidth() / 2)
+                        .attr("cy", y(d.averageRating))
+                        .attr("r", 4)
+                        .attr("fill", genreColor(d.genre))
+                        .on('mouseover', function(event) {
+                            d3.select(this)
+                                .transition()
+                                .duration(100)
+                                .attr("r", 8)
+                                .attr("stroke", "black")
+                                .attr("stroke-width", 1);
+
+                            tooltip
+                                .style("display", 'block')
+                                .style("visibility", "visible")
+                                .html(`
+                                    <img src=  "https://image.tmdb.org/t/p/original/${d.poster}" height="200" alt= "movie poster"><br>
+                                    <strong>${d.title}</strong><br>
+                                    Genres: ${d.genres}<br>
+                                    Release Date: ${d.releaseDate}<br>
+                                    Rating: ${d.averageRating}<br>
+                                    Worldwide Earnings: ${d.boxOffice > 0 ? `$${d.boxOffice.toLocaleString()}` : "N/A"}<br>
+                                    Director: ${d.director}<br><br>
+                                    <em>click to go visit imdb page <br>in a new tab</em><br>
+                                `)
+                                .style("left", () => {
+                                    const tooltipWidth = 200;
+                                    return Math.min(event.pageX + 20, window.innerWidth - tooltipWidth - 20) + "px";
+                                })
+                                .style("top", () => {
+                                    const tooltipHeight = 150;
+                                    return Math.max(20, event.pageY - tooltipHeight) + "px";
+                                });
+                        })
+                        .on("mouseout", function() {
+                            d3.select(this)
+                                .transition()
+                                .duration(100)
+                                .attr("r", 4)
+                                .attr("stroke", "none")
+                                .attr("stroke-width", 1);
 
                             tooltip.style("display", "none");
                         }).on("click", () => {
@@ -356,25 +465,32 @@ function updateVis() {
                 });
             });
         } else if (currentYAxisMode === "boxoffice") {
-            const maxBox = d3.max(filteredData, d => d.boxOffice || 0);
-            const y = d3.scaleLinear()
+            const maxBox = d3.max(dotPlotData, d => d.boxOffice || 0);
+            y = d3.scaleLinear()
                 .domain([0, maxBox])
                 .range([svgHeight - margin.top - margin.bottom, 0]);
         
             g.append("g").call(d3.axisLeft(y).tickFormat(d => d3.format("$.2s")(d).replace("G", "B")));
             d3.select("#y-axis-label").text("Worldwide Box Office");
+            g.append("text")
+            .attr("class", "x-axis-label")
+            .attr("x", width / 2 - 40)
+            .attr("y", svgHeight - 40)
+            .style("text-anchor", "middle")
+            .style("font-size", "14px")
+            .text("Year");
         
             years.forEach(year => {
                 const movies = yearGroups.get(year).filter(d => d.boxOffice > 0);
                 movies.forEach(d => {
                     const cx = x(year) + x.bandwidth() / 2;
-                    const cy = y(d.boxOffice || 0);
+                    const cy = y(d.boxOffice);
         
                     g.append("circle")
                         .attr("cx", cx)
                         .attr("cy", cy)
                         .attr("r", 4)
-                        .attr("fill", "seagreen")
+                        .attr("fill", genreColor(d.genre))
                         .on("mouseover", function(event) {
                             d3.select(this)
                                 .transition().duration(100)
@@ -383,17 +499,25 @@ function updateVis() {
         
                             tooltip
                                 .style("display", "block")
+                                .style("visibility", "visible")
                                 .html(`
                                     <img src="https://image.tmdb.org/t/p/original/${d.poster}" height="200"><br>
                                     <strong>${d.title}</strong><br>
+                                    Genres: ${d.genres}<br>
                                     Release Date: ${d.releaseDate}<br>
                                     Rating: ${d.averageRating}<br>
-                                    Worldwide Earnings: $${d.boxOffice.toLocaleString()}<br>
+                                    Worldwide Earnings: ${d.boxOffice > 0 ? `$${d.boxOffice.toLocaleString()}` : "N/A"}<br>
                                     Director: ${d.director}<br><br>
                                     <em>Click to view IMDb</em>
                                 `)
-                                .style("left", (event.pageX + 20) + "px")
-                                .style("top", (event.pageY - 28) + "px");
+                                .style("left", () => {
+                                    const tooltipWidth = 200;
+                                    return Math.min(event.pageX + 20, window.innerWidth - tooltipWidth - 20) + "px";
+                                })
+                                .style("top", () => {
+                                    const tooltipHeight = 150;
+                                    return Math.max(20, event.pageY - tooltipHeight) + "px";
+                                });
                         })
                         .on("mouseout", function() {
                             d3.select(this)
@@ -410,17 +534,18 @@ function updateVis() {
             });
         }
     } else if (currentActiveVis === "streamgraph") {
-        drawStreamgraph(filteredData, genreFilter);
+        drawStreamgraph(streamgraphData, genreFilter);
     }
 }
 
 function drawStreamgraph(sourceData, streamKeys) {
+    const streamgraph_chart_height = 500
     streamgraphG.selectAll("*").remove();
 
     if (streamKeys.length === 0 || sourceData.length === 0) {
         streamgraphG.append("text")
-            .attr("x", streamgraph_chart_width / 2)
-            .attr("y", streamgraph_chart_height / 2)
+            .attr("x", width / 2)
+            .attr("y", svgHeight / 2)
             .attr("text-anchor", "middle")
             .style("font-size", "14px")
             .text(streamKeys.length === 0 ? "Select genre(s) to see trends." : "No data matches filters for Streamgraph.");
@@ -435,14 +560,14 @@ function drawStreamgraph(sourceData, streamKeys) {
     if (dataMaxYear !== undefined) maxStreamYear = Math.min(maxStreamYear, dataMaxYear);
     
     if (minStreamYear > maxStreamYear) {
-        streamgraphG.append("text").attr("x", streamgraph_chart_width / 2).attr("y", streamgraph_chart_height / 2)
+        streamgraphG.append("text").attr("x", width / 2).attr("y", svgHeight / 2)
             .attr("text-anchor", "middle").text("No valid year range after filtering.");
         return;
     }
 
     const streamYears = d3.range(minStreamYear, maxStreamYear + 1);
     if (streamYears.length === 0) {
-        streamgraphG.append("text").attr("x", streamgraph_chart_width / 2).attr("y", streamgraph_chart_height / 2)
+        streamgraphG.append("text").attr("x", width / 2).attr("y", streamgraph_chart_height / 2)
             .attr("text-anchor", "middle").text("Not enough year range to display trend.");
         return;
     }
@@ -463,16 +588,23 @@ function drawStreamgraph(sourceData, streamKeys) {
 
     const xStream = d3.scaleLinear()
         .domain(d3.extent(streamFormattedData, d => d.year))
-        .range([0, streamgraph_chart_width]);
+        .range([0, width - 100]);
 
     streamgraphG.append("g")
         .attr("transform", `translate(0,${streamgraph_chart_height})`)
-        .call(d3.axisBottom(xStream).tickFormat(d3.format("d")).ticks(Math.min(streamYears.length, 10)))
+
+        .call(d3.axisBottom(xStream).tickValues(streamYears).tickFormat(d3.format("d")))
         .selectAll("text")
         .attr("transform", "rotate(-45)")
         .style("text-anchor", "end");
 
-    const colorStream = d3.scaleOrdinal(d3.schemeCategory10).domain(streamKeys);
+    streamgraphG.append("text")
+        .attr("class", "x-axis-label")
+        .attr("x", width / 2 - 40)
+        .attr("y", streamgraph_chart_height + 50)
+        .style("text-anchor", "middle")
+        .style("font-size", "14px")
+        .text("Year");
 
     const stack = d3.stack()
         .keys(streamKeys)
@@ -498,7 +630,7 @@ function drawStreamgraph(sourceData, streamKeys) {
         .data(series)
         .join("path")
         .attr("class", "stream-layer")
-        .style("fill", d => colorStream(d.key))
+        .style("fill", d => genreColor(d.key))
         .attr("d", areaStream)
         .on('mouseover', function(event, d_layer) {
             tooltip.style("visibility", "visible").style("display", "block");
@@ -518,15 +650,7 @@ function drawStreamgraph(sourceData, streamKeys) {
             tooltip.style("visibility", "hidden").style("display", "none");
             streamgraphG.selectAll(".stream-layer").style("opacity", 1).style("stroke", "none");
         });
-
-    const legend = streamgraphG.append("g")
-        .attr("class", "streamgraph-legend")
-        .attr("transform", `translate(${streamgraph_chart_width + 15}, 0)`);
-    streamKeys.forEach((key, i) => {
-        const legendItem = legend.append("g").attr("class", "streamgraph-legend-item").attr("transform", `translate(0, ${i * 20})`);
-        legendItem.append("rect").attr("x", 0).attr("y", -5).attr("width", 10).attr("height", 10).style("fill", colorStream(key));
-        legendItem.append("text").attr("x", 15).attr("y", 0).text(key);
-    });
+    
 }
 
 window.addEventListener("load", init);
