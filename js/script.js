@@ -28,9 +28,9 @@ const legend_colors = [
     "#26b999", //dark lime - 10 
     "#d8bfd8", //thistle - 11
     "#6495ed", //cornflower - 12
-    "#ffdd00", //yellow - 13 (change)
+    "#ffdd00", //yellow - 13 
     "#9acd32", //yellow green - 14
-    "#db7093", //plae violet red - 15
+    "#db7093", //pale violet red - 15
     "#7b68ee", //medium slate blue - 16
     "#ff1493", //deep pink - 17
     "#00fa9a", //medium spring green - 18
