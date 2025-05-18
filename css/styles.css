@@ -162,6 +162,7 @@ input[type="checkbox"] {
     display: flex;
     justify-content: center;
     width: 100%;
+    gap: 20px;
 }
 
 #legend-and-stats{
@@ -173,6 +174,18 @@ table, th, td {
     border: 1px solid black;
     font-size: 18px;
 }
+
+.legend-container {
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5px;
+ }
+ .legend-container:empty {
+    display: none;
+ }
+ 
+
 /* #genreDropdown {
     padding: 5px;
     font-size: 14px;
