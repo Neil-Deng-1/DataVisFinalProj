@@ -153,7 +153,7 @@ input[type="checkbox"] {
     border-radius: 6px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     margin-bottom: 30px;
-    margin: 30px;
+    margin: 50px;
 }
 
 .hidden {
@@ -219,6 +219,22 @@ table, th, td {
     font-size: 25px;
     text-align: left;
     font-weight: lighter;
+}
+
+.paragraph {
+    margin: 80px;
+}
+
+.par-title {
+    font-size: 55px;
+    text-align: left;
+    font-weight: bold;
+}
+
+.par-content {
+    font-size: 25px;
+    text-align: left;
+    margin: 10px;
 }
  
 
