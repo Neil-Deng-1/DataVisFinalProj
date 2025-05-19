@@ -168,11 +168,13 @@ input[type="checkbox"] {
 #legend-and-stats{
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
+    justify-content: center;
+    
 }
 table, th, td {
     border: 1px solid black;
     font-size: 18px;
+    text-align: center; 
 }
 
 .legend-container {
