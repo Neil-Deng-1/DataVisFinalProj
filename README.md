@@ -56,4 +56,4 @@ Wrote descriptions/annotations on the webpage/visualization artifact
 Made UI changes
 
 PROCESS:
-This project was completed through the collaborative effort of each team member. The team held regular meetings, in which we discussed what additions and changes needed to be addresseed, potential solutions, and the delegation of tasks. Team members were also encouraged to find issues in the visualization and report them to the team. Each member was proactive in their communication, completing their assigned tasks, reporting bugs, and offering help for fixing bugs. 
+This project was completed through the collaborative effort of each team member. The team held regular meetings, in which we discussed what additions and changes needed to be addressed, potential solutions, and the delegation of tasks. Team members were also encouraged to find issues in the visualization and report them to the team. Each member was proactive in their communication, completing their assigned tasks, reporting bugs, and offering help where needed. 
