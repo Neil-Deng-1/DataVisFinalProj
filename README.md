@@ -2,7 +2,6 @@
 
 CONTRIBUTIONS:
 
-
 Bill (20%): 
 y-axis, flex filters
 alphabetize count mode, bold and enlarge hover, checkbox for genre select
@@ -56,3 +55,5 @@ Mapped legends so legend items’ colors update as genres selected
 Wrote descriptions/annotations on the webpage/visualization artifact
 Made UI changes
 
+PROCESS:
+This project was completed through the collaborative effort of each team member. The team held regular meetings, in which we discussed what additions and changes needed to be addresseed, potential solutions, and the delegation of tasks. 
