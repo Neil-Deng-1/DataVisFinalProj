@@ -12,6 +12,7 @@ h1 {
     color: #222;
 }
 
+/* css for Movie Visualization Hub */
 .card {
   display: flex;
   flex-wrap: wrap;
@@ -166,6 +167,7 @@ input[type="checkbox"] {
     gap: 25px;
 }
 
+/* css for Stats Summary */
 #legend-and-stats{
     display: flex;
     flex-direction: row;
@@ -180,6 +182,7 @@ table, th, td {
     background-color: #fff;
 }
 
+/* css for legend */
 .legend-container {
     padding: 10px;
     display: flex;
@@ -191,13 +194,14 @@ table, th, td {
     display: none;
 }
 
+/* css for page UI design (descriptions/annotations) */
 .title-container {
-    background-color: #323532;   /* Set a background color (green in this case) */
-    color: white;                /* Set text color to white */
-    text-align: center;          /* Center the text horizontally */
-    padding: 50px;               /* Add some padding inside the header */
-    width: 100%;                 /* Make the header take up the full width of the page */
-    box-sizing: border-box;      /* Ensures padding is included in the width */
+    background-color: #323532;   
+    color: white;                
+    text-align: center;          
+    padding: 50px;               
+    width: 100%;                 
+    box-sizing: border-box;      
     position: relative;   
 }
 
@@ -236,32 +240,3 @@ table, th, td {
     text-align: left;
     margin: 10px;
 }
- 
-
-/* #genreDropdown {
-    padding: 5px;
-    font-size: 14px;
-    width: 200px;
-    margin-left: 5px;
-    margin-right: 10px;
-}
-
-
-
-#streamgraph-vis-container {
-    border: 1px solid #ccc;
-    background-color: #fff;
-    padding: 10px;
-    min-height: 600px; 
-}
-
-#streamgraph-vis-container svg {
-    display: block;
-    margin: 0 auto;
-}
-
-
-.streamgraph-legend-item text {
-    font-size: 10px;
-    dominant-baseline: middle;
-} */

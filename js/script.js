@@ -15,6 +15,7 @@ let genreFilter = [];
 let currentYAxisMode = "count"; // "count", "rating", "boxoffice"
 let currentActiveVis = "dotPlot";
 
+/* color palette for legends */
 const legend_colors = [
     "#dc143c", //crimson - 1
     "#008000", //green - 2
@@ -41,6 +42,7 @@ const legend_colors = [
     "#5e5e5e", //gray - 23 
 ];
 
+//setting colors for genre colors on legend
 const genreColor = d3.scaleOrdinal(legend_colors);
 
 // Dotplot SVG setup
@@ -119,7 +121,7 @@ function init() {
     .catch(error => console.error("Data load error:", error));
 }
 
-/* Change the legend colors */
+/* Change the legend colors as genres are clicked/unclicked */
 function updateLegend(selectedGenres) {
     const legendContainer = d3.select("#legend");
     legendContainer.selectAll("*").remove(); 
@@ -213,7 +215,7 @@ function setupSelector() {
     });
     const genres = Array.from(genreSet).sort();
 
-    // Replace dropdown with checkbox container
+    //checkbox container
     const checkboxContainer = d3.select("#genreCheckboxes");
 
     //get emoji
@@ -354,7 +356,7 @@ function updateVis() {
 
     
     {
-        //start stats table code
+    //start stats table code
 
     //helper functions for stats
     function findMean(arr){
@@ -483,7 +485,7 @@ function updateVis() {
     //end stats table code
     }
 
-
+    // dot plot visualization is selected in Movie Hub
     if (currentActiveVis === "dotPlot") {
         const x = d3.scaleBand()
             .domain(years)
@@ -718,11 +720,13 @@ function updateVis() {
                 });
             });
         }
+        // stream graph visualization is selected in Movie Hub
     } else if (currentActiveVis === "streamgraph") {
         drawStreamgraph(streamgraphData, genreFilter);
     }
 }
 
+// code to create stream graph
 function drawStreamgraph(sourceData, streamKeys) {
     const streamgraph_chart_height = 500
     streamgraphG.selectAll("*").remove();
