@@ -162,7 +162,7 @@ input[type="checkbox"] {
     display: flex;
     justify-content: center;
     width: 100%;
-    gap: 20px;
+    gap: 25px;
 }
 
 #legend-and-stats{
@@ -173,8 +173,10 @@ input[type="checkbox"] {
 }
 table, th, td {
     border: 1px solid black;
-    font-size: 18px;
+    font-size: 25px;
     text-align: center; 
+    padding: 5px;
+    background-color: #fff;
 }
 
 .legend-container {
