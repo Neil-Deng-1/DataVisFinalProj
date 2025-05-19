@@ -146,7 +146,7 @@ function setupSelector() {
     const minYear = d3.min(allData, d => d.year);
     const maxYear = d3.max(allData, d => d.year);
     yearRange = [minYear, maxYear];
-    const sliderWidth = Math.min(960, width-45);
+    const sliderWidth = Math.min(1060, width-45);
 
     const yearSlider = d3.sliderHorizontal()
         .min(minYear)
